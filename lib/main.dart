@@ -1,9 +1,29 @@
 import 'package:flutter/material.dart';
-import 'pages/welcome.dart';
+import 'pages/auth_page.dart';
 import 'package:google_gemini/theme/light_mode.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+Future <void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  runApp(
+      Phoenix(
+        child: MyApp()
+      ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -13,8 +33,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Welcome(),
+      home: const AuthPage(),
       theme: lightMode,
+      navigatorKey: navigatorKey,
     );
   }
 }

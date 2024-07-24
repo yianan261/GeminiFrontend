@@ -1,12 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_gemini/components/my_button.dart';
+import 'sign_in.dart';
 
 class Welcome extends StatelessWidget{
   const Welcome({super.key});
-
-  void login(){
-
-  }
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -22,7 +20,7 @@ class Welcome extends StatelessWidget{
             ),
 
             //welcome message
-            Text(
+            const Text(
               "Enhance experience",
               style: TextStyle(
                   fontSize: 20,
@@ -31,10 +29,10 @@ class Welcome extends StatelessWidget{
 
             const SizedBox(height: 20),
             //app message
-            Text(
+            const Text(
               "Discover hidden and unique nearby point of interests",
             ),
-            Text(
+            const Text(
               "and personalize your exploration experience...",
             ),
 
@@ -42,7 +40,8 @@ class Welcome extends StatelessWidget{
             //login button
             MyButton(
               text: "Sign in with Google",
-              onTap: login,
+              onTap: () => handleSignIn(context),
+              imagePath: 'assets/images/google.png',
             )
           ],
         ),
