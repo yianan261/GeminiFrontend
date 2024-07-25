@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1075327583731",
+    "project_id": "wander-6ad0c",
+    "storage_bucket": "wander-6ad0c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075327583731:android:514f9951dc1bbd4b99be86",
+        "android_client_info": {
+          "package_name": "com.wanderfinds.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1075327583731-p1p4hfh6psk5u7p421i2hv5mteg62g0v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wanderfinds.app",
+            "certificate_hash": "7b58947d4af0b80ea80f587f1e904f7b00e4dc11"
+          }
+        },
+        {
+          "client_id": "1075327583731-34s1jl4vlfrkaf35uivlg24g3eat8ek3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtQRhrXU-6wUmcYNQ9sroz-pd6JnI8hpk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1075327583731-34s1jl4vlfrkaf35uivlg24g3eat8ek3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1075327583731-hmpimaea886h2hl2jijrodmehnhbq26p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.wanderFindsGemini"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
