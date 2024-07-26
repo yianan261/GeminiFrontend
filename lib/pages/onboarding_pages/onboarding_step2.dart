@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:wander_finds_gemini/components/my_button.dart';
-import '/components/signout_button.dart';
-import '/services/request_location.dart';
+import 'package:wander_finds_gemini/pages/onboarding_pages/onboarding_step1.dart';
+import 'package:wander_finds_gemini/services/request_notifications.dart';
+import '/components/back_button.dart';
+import '/components/my_button.dart';
 
-class AllowLocationPage extends StatelessWidget {
-  const AllowLocationPage({super.key});
+class AllowNotificationsPage extends StatelessWidget {
+  const AllowNotificationsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        actions: <Widget>[
-          SignoutButton(),
-        ],
+        leading: MyBackButton(
+          navigateTo: const AllowLocationPage(),
+        ),
       ),
       body: Center(
         child: Padding(
@@ -25,13 +26,13 @@ class AllowLocationPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    Icons.location_on,
+                    Icons.notifications_active,
                     size: 50.0,
                   ),
                   SizedBox(width: 10.0),
                   Flexible(
                     child: Text(
-                      'Allow access to your location to explore places near you.',
+                      'Allow notifications to receive updateds for point of interests.',
                       style: TextStyle(fontSize: 30),
                       textAlign: TextAlign.center,
                     ),
@@ -41,7 +42,7 @@ class AllowLocationPage extends StatelessWidget {
               SizedBox(height: 20.0),
               MyButton(
                 text: "Next",
-                onTap: () => requestLocation(context),
+                onTap: () => permissionNotification(context),
               )
             ],
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '/components/my_button.dart';
-import 'sign_in.dart';
+import '../services/sign_in.dart';
 
 class Welcome extends StatelessWidget{
   const Welcome({super.key});

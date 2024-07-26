@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'welcome.dart';
 import 'home.dart';
 import 'onboarding_pages/onboarding_step1.dart';
+import 'onboarding_pages/onboarding_step2.dart';
+import 'onboarding_pages/onboarding_step3.dart';
 
 final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -14,10 +16,9 @@ Future<void> navigateUser(BuildContext context, User user) async {
     Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
 
     bool accessLocationAllowed = userData?['accessLocationAllowed'] ?? false;
-    /*
     bool notificationAllowed = userData?['notificationAllowed'] ?? false;
     bool googleTakeoutUploaded = userData?['googleTakeoutUploaded'] ?? false;
-    bool interestSelected = userData?['interestSelected'] ?? false;
+    /*bool interestSelected = userData?['interestSelected'] ?? false;
     bool onboardingCompleted = userData?['onboardingCompleted'] ?? false;*/
 
     if (!accessLocationAllowed) {
@@ -25,7 +26,7 @@ Future<void> navigateUser(BuildContext context, User user) async {
         context,
         MaterialPageRoute(builder: (context) => const AllowLocationPage()),
       );
-    } /*else if (!notificationAllowed) {
+    } else if (!notificationAllowed) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const AllowNotificationsPage()),
@@ -33,9 +34,9 @@ Future<void> navigateUser(BuildContext context, User user) async {
     } else if (!googleTakeoutUploaded) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const UploadGoogleTakeoutPage()),
+        MaterialPageRoute(builder: (context) => const UploadGoogleTakeout()),
       );
-    } else if (!interestSelected) {
+    } /*else if (!interestSelected) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const SelectInterestPage()),
