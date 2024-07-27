@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../pages/navigation_utils.dart';
 import '/pages/onboarding_pages/onboarding_step3.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '/constants.dart';
 
 final _firebaseMessaging = FirebaseMessaging.instance;
 
@@ -24,20 +26,25 @@ Future<void> permissionNotification(BuildContext context) async {
 
     //update firestore
     User? user = FirebaseAuth.instance.currentUser;
-    if (user != null){
-      await firestore.collection('users').doc(user.uid).update({
-        'notificationAllowed': true,
-      });
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const UploadGoogleTakeout()),
+    if (user != null) {
+      final response = await http.post(
+        Uri.parse('$baseUrl/updateUser?user_id=${user.uid}'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'notificationAllowed': true,
+        }),
       );
+
+      //navigate to onboarding step 3
+      if (response.statusCode == 200) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OnboardingStep3()),
+        );
+      }
     }
-
-    //navigate to onboarding step 3
-    //navigate to step 2
-
-
 
   } else {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(

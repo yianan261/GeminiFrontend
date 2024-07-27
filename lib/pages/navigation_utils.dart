@@ -17,8 +17,8 @@ Future<void> navigateUser(BuildContext context, User user) async {
 
     bool accessLocationAllowed = userData?['accessLocationAllowed'] ?? false;
     bool notificationAllowed = userData?['notificationAllowed'] ?? false;
-    bool googleTakeoutUploaded = userData?['googleTakeoutUploaded'] ?? false;
-    /*bool interestSelected = userData?['interestSelected'] ?? false;
+    bool onboarding_step3 = userData?['onboarding_step3'] ?? false;
+    /*bool onboarding_step4 = userData?['onboarding_step4'] ?? false;
     bool onboardingCompleted = userData?['onboardingCompleted'] ?? false;*/
 
     if (!accessLocationAllowed) {
@@ -31,10 +31,10 @@ Future<void> navigateUser(BuildContext context, User user) async {
         context,
         MaterialPageRoute(builder: (context) => const AllowNotificationsPage()),
       );
-    } else if (!googleTakeoutUploaded) {
+    } else if (!onboarding_step3) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const UploadGoogleTakeout()),
+        MaterialPageRoute(builder: (context) => const OnboardingStep3()),
       );
     } /*else if (!interestSelected) {
       Navigator.pushReplacement(

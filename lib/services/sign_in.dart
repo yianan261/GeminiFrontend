@@ -4,7 +4,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../pages/navigation_utils.dart'; // Import the utility function
 import '../pages/home.dart';
-import '../pages/welcome.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn(
@@ -48,8 +49,8 @@ Future<Map<String, dynamic>?> signInWithGoogle() async {
             'createdAt': FieldValue.serverTimestamp(),
             'accessLocationAllowed': false,
             'notificationAllowed': false,
-            'googleTakeoutUploaded': false,
-            'interestSelected': false,
+            'onboarding_step3': false,
+            'onboarding_step4': false,
             'onboardingCompleted': false,
           };
           await firestore.collection('users').doc(user.uid).set(userData);
@@ -92,13 +93,3 @@ void handleSignIn(BuildContext context) async {
   }
 }
 
-void signOutGoogle(BuildContext context) async {
-  await googleSignIn.signOut();
-  await FirebaseAuth.instance.signOut();
-  print("User Signed Out");
-  Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(builder: (context) => const Welcome()),
-        (route) => false,
-  );
-}

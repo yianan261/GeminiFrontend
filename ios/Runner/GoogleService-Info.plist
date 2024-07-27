@@ -3,9 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>1075327583731-hmpimaea886h2hl2jijrodmehnhbq26p.apps.googleusercontent.com</string>
+	<string>1075327583731-ck45bvqg9639h94141sqdlv7b815u335.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.1075327583731-hmpimaea886h2hl2jijrodmehnhbq26p</string>
+	<string>com.googleusercontent.apps.1075327583731-ck45bvqg9639h94141sqdlv7b815u335</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>1075327583731-p1p4hfh6psk5u7p421i2hv5mteg62g0v.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyCfu-mzZo5rVDQbH5Y3rMSghdSYUwZwCU8</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.wanderFindsGemini</string>
+	<string>com.new.wanderFindsGemini</string>
 	<key>PROJECT_ID</key>
 	<string>wander-6ad0c</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1075327583731:ios:1e9aaf2796c1168799be86</string>
+	<string>1:1075327583731:ios:720ff14e44ac5c4e99be86</string>
 </dict>
 </plist>
