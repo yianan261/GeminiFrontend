@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:firebase_auth/firebase_auth.dart';
-import '/components/back_button.dart';
 import '/components/my_button.dart';
+import '/components/my_appbar.dart';
 import 'onboarding_step2.dart';
-import '/constants.dart'; // Import the config file
+import '/services/update_step3.dart';
 
 class OnboardingStep3 extends StatefulWidget {
   const OnboardingStep3({Key? key}) : super(key: key);
@@ -19,56 +16,29 @@ class _OnboardingStep3State extends State<OnboardingStep3> {
   bool isLoading = true;
   String? errorMessage;
 
-  Future<void> fetchUserInfo(String userId) async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body) as Map<String, dynamic>?;
-        //print(responseData);
+  @override
+  void initState() {
+    super.initState();
+    fetchUserInfo(context, (responseData) {
+      if (responseData != null) {
         setState(() {
-          userName = responseData?['data']?['displayName'] ?? 'User';
-          //print(userName);
+          userName = responseData['data']?['displayName'] ?? 'User';
           isLoading = false;
         });
       } else {
         setState(() {
-          errorMessage = 'Error fetching user info: ${response.statusCode}';
+          errorMessage = 'Error fetching user info';
           isLoading = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'Error fetching user info: $e';
-        isLoading = false;
-      });
-    }
-  }
-
-  void uploadTakeoutData() {
-    // Define the function to handle data upload
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
-      fetchUserInfo(currentUser.uid);
-    } else {
-      setState(() {
-        errorMessage = 'User not logged in';
-        isLoading = false;
-      });
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: MyBackButton(
-          navigateTo: const AllowNotificationsPage(),
-        ),
+      appBar: CustomAppBar(
+        navigateTo: const AllowNotificationsPage(), // Adjust this as necessary
       ),
       body: Center(
         child: isLoading
@@ -94,20 +64,20 @@ class _OnboardingStep3State extends State<OnboardingStep3> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 100),
               MyButton(
                 text: "Upload Google Takeout Data",
-                onTap: uploadTakeoutData,
+                onTap: uploadTakeoutData
               ),
+              SizedBox(height: 20),
               GestureDetector(
                 onTap: () {
-                  // Define click action here
+                  updateOnboardingStep3(context);
                 },
                 child: Text(
                   'Maybe later',
                   style: TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
+                    fontSize: 12,
                   ),
                   textAlign: TextAlign.center,
                 ),

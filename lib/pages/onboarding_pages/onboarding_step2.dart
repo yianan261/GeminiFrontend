@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wander_finds_gemini/pages/onboarding_pages/onboarding_step1.dart';
 import 'package:wander_finds_gemini/services/request_notifications.dart';
-import '/components/back_button.dart';
 import '/components/my_button.dart';
+import '/components/my_appbar.dart';
 
 class AllowNotificationsPage extends StatelessWidget {
   const AllowNotificationsPage({super.key});
@@ -10,10 +10,8 @@ class AllowNotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(
-        leading: MyBackButton(
-          navigateTo: const AllowLocationPage(),
-        ),
+      appBar: CustomAppBar(
+        navigateTo: const AllowLocationPage(), // Adjust this as necessary
       ),
       body: Center(
         child: Padding(
