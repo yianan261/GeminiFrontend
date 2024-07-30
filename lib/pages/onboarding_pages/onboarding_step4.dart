@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
 import '/components/my_button.dart';
 import '/services/update_interests.dart';
 
@@ -21,7 +20,7 @@ class Interests {
 }
 
 class _OnboardingStep4State extends State<OnboardingStep4> {
-  static List<Interests> interests = [
+  static List<Interests> _items = [
     Interests(title: 'Architecture', imagePath: 'assets/images/architecture.jpg'),
     Interests(title: 'Art & Culture', imagePath: 'assets/images/art_culture.jpg'),
     Interests(title: 'Food, Drink & Fun', imagePath: 'assets/images/food_drink_fun.jpg'),
@@ -30,9 +29,7 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
     Interests(title: 'Cool & Unique', imagePath: 'assets/images/cool_unique.jpg'),
   ];
 
-  final _items = interests
-      .map((interest) => MultiSelectItem<Interests>(interest, interest.title))
-      .toList();
+
 
   String otherInterest = "";
 
@@ -55,16 +52,16 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
               child: ListView(
                 children: _items.map((item) {
                   return ListTile(
-                    leading: Image.asset(item.value.imagePath, width: 40, height: 40,fit: BoxFit.cover),
-                    title: Text(item.label),
+                    leading: Image.asset(item.imagePath, width: 40, height: 40,fit: BoxFit.cover),
+                    title: Text(item.title),
                     trailing: Checkbox(
-                      value: _selectedInterests.contains(item.value.title),
+                      value: _selectedInterests.contains(item.title),
                       onChanged: (isChecked) {
                         setState(() {
                           if (isChecked == true) {
-                            _selectedInterests.add(item.value.title);
+                            _selectedInterests.add(item.title);
                           } else {
-                            _selectedInterests.remove(item.value.title);
+                            _selectedInterests.remove(item.title);
                           }
                         });
                       },
