@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/constants.dart'; // Import the config file
-import '/pages/home.dart';
+import '/pages/settings.dart';
 
 Future<void> fetchUserInfo(BuildContext context, Function(Map<String, dynamic>?) callback) async {
   User? currentUser = FirebaseAuth.instance.currentUser;
@@ -55,7 +55,7 @@ Future<void> updateOnboardingStep4(BuildContext context, List<String> Interests,
     if (response.statusCode == 200) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) =>  SettingsPage()),
       );
     } else {
       print('Failed to update onboarding step: ${response.statusCode}');
@@ -63,10 +63,4 @@ Future<void> updateOnboardingStep4(BuildContext context, List<String> Interests,
   } catch (e) {
     print('Error updating onboarding step: $e');
   }
-}
-
-void uploadTakeoutData() async {
-
-
-
 }
