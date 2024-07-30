@@ -3,35 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/constants.dart'; // Import the config file
-import '/pages/settings.dart';
+import '/pages/onboarding_pages/onboarding_review.dart';
 
-Future<void> fetchUserInfo(BuildContext context, Function(Map<String, dynamic>?) callback) async {
-  User? currentUser = FirebaseAuth.instance.currentUser;
-  if (currentUser == null) {
-    print('User not logged in');
-    callback(null);
-    return;
-  }
-
-  String userId = currentUser.uid;
-
-  try {
-    final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
-    if (response.statusCode == 200) {
-      final responseData = json.decode(response.body) as Map<String, dynamic>?;
-      print('Response data: $responseData'); // Print the response data
-      callback(responseData);
-    } else {
-      print('Error fetching user info: ${response.statusCode}');
-      callback(null);
-    }
-  } catch (e) {
-    print('Error fetching user info: $e');
-    callback(null);
-  }
-}
-
-Future<void> updateOnboardingStep4(BuildContext context, List<String> Interests,String otherInterest) async {
+Future<void> updateOnboardingStep4(BuildContext context, List<dynamic> Interests,String otherInterest) async {
   User? currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser == null) {
     print('User not logged in');
@@ -48,14 +22,15 @@ Future<void> updateOnboardingStep4(BuildContext context, List<String> Interests,
       },
       body: jsonEncode(<String, dynamic>{
         'Interests': Interests,
-        "otherInterest" : otherInterest
+        "otherInterest" : otherInterest,
+        'onboarding_step4': true,
       }),
     );
 
     if (response.statusCode == 200) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) =>  SettingsPage()),
+        MaterialPageRoute(builder: (context) => const OnboardingReviewPage()),
       );
     } else {
       print('Failed to update onboarding step: ${response.statusCode}');
@@ -64,3 +39,4 @@ Future<void> updateOnboardingStep4(BuildContext context, List<String> Interests,
     print('Error updating onboarding step: $e');
   }
 }
+

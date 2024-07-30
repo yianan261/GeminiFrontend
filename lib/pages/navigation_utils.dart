@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wander_finds_gemini/pages/onboarding_pages/onboarding_step4.dart';
 import 'welcome.dart';
 import 'home.dart';
 import 'onboarding_pages/onboarding_step1.dart';
 import 'onboarding_pages/onboarding_step2.dart';
 import 'onboarding_pages/onboarding_step3.dart';
+import 'onboarding_pages/onboarding_review.dart';
+import 'onboarding_pages/onboarding_step4.dart';
 
 final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -20,7 +21,7 @@ Future<void> navigateUser(BuildContext context, User user) async {
     bool notificationAllowed = userData?['notificationAllowed'] ?? false;
     bool onboarding_step3 = userData?['onboarding_step3'] ?? false;
     bool onboarding_step4 = userData?['onboarding_step4'] ?? false;
-    /*bool onboardingCompleted = userData?['onboardingCompleted'] ?? false;*/
+    bool onboardingCompleted = userData?['onboardingCompleted'] ?? false;
 
     if (!accessLocationAllowed) {
       Navigator.pushReplacement(
@@ -42,12 +43,12 @@ Future<void> navigateUser(BuildContext context, User user) async {
         context,
         MaterialPageRoute(builder: (context) => const OnboardingStep4()),
       );
-    } /*else if (!onboardingCompleted) {
+    } else if (!onboardingCompleted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const ReviewConfirmPage()),
+        MaterialPageRoute(builder: (context) => const OnboardingReviewPage()),
       );
-    } */ else {
+    } else {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),

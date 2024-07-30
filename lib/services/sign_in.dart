@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../pages/navigation_utils.dart'; // Import the utility function
+import '../pages/navigation_utils.dart';
 import '../pages/home.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn(

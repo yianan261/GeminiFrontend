@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '/components/my_button.dart';
 import '/components/my_appbar.dart';
 import 'onboarding_step2.dart';
+import '/services/fetch_user.dart';
 import '/services/update_step3.dart';
 
 class OnboardingStep3 extends StatefulWidget {
