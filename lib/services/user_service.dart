@@ -20,7 +20,7 @@ Future<Map<String, dynamic>> getUser() async{
         'Content-Type': 'application/json; charset=UTF-8',
       }
     );
-    print(response);
+    //print(response);
 
     if (response.statusCode == 200) {
 

@@ -3,7 +3,7 @@ import '/components/my_button.dart';
 import '/components/my_appbar.dart';
 import 'onboarding_step3.dart';
 import '/services/update_interests.dart';
-import '/services/fetch_user.dart';
+import '/services/user_service.dart';
 import '/components/interest_list.dart'; // Import the InterestList
 import '/components/my_textfield.dart';
 import '/models/interests_model.dart';// Import the AddableTextField
@@ -32,20 +32,29 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
   @override
   void initState() {
     super.initState();
-    fetchUserInfo(context, (responseData) {
-      if (responseData != null) {
-        setState(() {
-          _selectedInterests = List<String>.from(responseData['data']?['Interests'] ?? []);
+    fetchUser();
+  }
+
+  Future<void> fetchUser() async {
+    try {
+      final responseData = await getUser();
+      setState(() {
+        if (responseData.isNotEmpty) {
+          _selectedInterests = responseData['Interests'] ?? [];
           isLoading = false;
-        });
-      } else {
-        setState(() {
+        } else {
           errorMessage = 'Error fetching user info';
           isLoading = false;
-        });
-      }
-    });
+        }
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error fetching user info: $e';
+        isLoading = false;
+      });
+    }
   }
+
 
   void _toggleInterest(String interestTitle) {
     setState(() {

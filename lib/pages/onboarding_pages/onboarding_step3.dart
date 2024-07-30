@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '/components/my_button.dart';
 import '/components/my_appbar.dart';
 import 'onboarding_step2.dart';
-import '/services/fetch_user.dart';
+import '/services/user_service.dart';
 import '/services/update_step3.dart';
 
 class OnboardingStep3 extends StatefulWidget {
@@ -20,19 +20,27 @@ class _OnboardingStep3State extends State<OnboardingStep3> {
   @override
   void initState() {
     super.initState();
-    fetchUserInfo(context, (responseData) {
-      if (responseData != null) {
-        setState(() {
-          userName = responseData['data']?['displayName'] ?? 'User';
+    fetchUser();
+  }
+
+  Future<void> fetchUser() async {
+    try {
+      final responseData = await getUser();
+      setState(() {
+        if (responseData.isNotEmpty) {
+          userName = responseData['displayName'] ?? 'User';
           isLoading = false;
-        });
-      } else {
-        setState(() {
+        } else {
           errorMessage = 'Error fetching user info';
           isLoading = false;
-        });
-      }
-    });
+        }
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error fetching user info: $e';
+        isLoading = false;
+      });
+    }
   }
 
   @override
