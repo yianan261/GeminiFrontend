@@ -4,9 +4,9 @@ import '/components/my_appbar.dart';
 import 'onboarding_step3.dart';
 import '/services/update_interests.dart';
 import '/services/user_service.dart';
-import '/components/interest_list.dart'; // Import the InterestList
+import '/components/interest_list.dart';
 import '/components/my_textfield.dart';
-import '/models/interests_model.dart';// Import the AddableTextField
+import '/models/interests_model.dart';
 
 class OnboardingStep4 extends StatefulWidget {
   const OnboardingStep4({Key? key}) : super(key: key);
@@ -40,7 +40,7 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
       final responseData = await getUser();
       setState(() {
         if (responseData.isNotEmpty) {
-          _selectedInterests = responseData['Interests'] ?? [];
+          _selectedInterests = List<String>.from(responseData['Interests'] ?? []);
           isLoading = false;
         } else {
           errorMessage = 'Error fetching user info';
@@ -55,16 +55,12 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
     }
   }
 
-
   void _toggleInterest(String interestTitle) {
     setState(() {
-      final interest = interests.firstWhere((i) => i.title == interestTitle);
-      if (interest.isOriginal) {
-        if (_selectedInterests.contains(interestTitle)) {
-          _selectedInterests.remove(interestTitle);
-        } else {
-          _selectedInterests.add(interestTitle);
-        }
+      if (_selectedInterests.contains(interestTitle)) {
+        _selectedInterests.remove(interestTitle);
+      } else {
+        _selectedInterests.add(interestTitle);
       }
     });
   }

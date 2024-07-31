@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 class AddableTextField extends StatefulWidget {
   final Function(String) onAdd;
@@ -32,21 +33,29 @@ class _AddableTextFieldState extends State<AddableTextField> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextField(
-        controller: _controller,
-        decoration: InputDecoration(
-          hintText: widget.hintText,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          suffixIcon: IconButton(
-            icon: Icon(Icons.add),
-            onPressed: _handleAdd,
-          ),
+      child: Container(
+        constraints: BoxConstraints(
+          minHeight: 20, // Set a minimum height for the text field
         ),
-        onSubmitted: (value) {
-          _handleAdd();
-        },
+        child: TextField(
+          controller: _controller,
+          maxLines: null, // Allow the text field to expand vertically
+          decoration: InputDecoration(
+            hintText: widget.hintText,
+            hintMaxLines: 3,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(CupertinoIcons.paperplane_fill, color: Colors.black),
+              onPressed: _handleAdd,
+            ),
+            contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 16), // Adjust padding
+          ),
+          onSubmitted: (value) {
+            _handleAdd();
+          },
+        ),
       ),
     );
   }

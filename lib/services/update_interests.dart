@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import '/constants.dart'; // Import the config file
+import '/constants.dart';
 import '/pages/onboarding_pages/onboarding_review.dart';
+import '/models/interests_model.dart';
 
-Future<void> updateOnboardingStep4(BuildContext context, List<dynamic> Interests,String otherInterest) async {
+Future<void> updateOnboardingStep4(BuildContext context, List<String> interests, String otherInterest) async {
   User? currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser == null) {
     print('User not logged in');
@@ -21,8 +22,8 @@ Future<void> updateOnboardingStep4(BuildContext context, List<dynamic> Interests
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, dynamic>{
-        'Interests': Interests,
-        "otherInterest" : otherInterest,
+        'Interests': interests,
+        'otherInterest': otherInterest,
         'onboarding_step4': true,
       }),
     );
@@ -30,7 +31,7 @@ Future<void> updateOnboardingStep4(BuildContext context, List<dynamic> Interests
     if (response.statusCode == 200) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const OnboardingReviewPage()),
+        MaterialPageRoute(builder: (context) => const ReviewPage()),
       );
     } else {
       print('Failed to update onboarding step: ${response.statusCode}');
@@ -39,4 +40,3 @@ Future<void> updateOnboardingStep4(BuildContext context, List<dynamic> Interests
     print('Error updating onboarding step: $e');
   }
 }
-

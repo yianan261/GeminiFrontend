@@ -46,7 +46,7 @@ Future<void> navigateUser(BuildContext context, User user) async {
     } else if (!onboardingCompleted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const OnboardingReviewPage()),
+        MaterialPageRoute(builder: (context) => const ReviewPage()),
       );
     } else {
       Navigator.pushReplacement(
