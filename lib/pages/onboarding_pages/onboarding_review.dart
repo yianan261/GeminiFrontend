@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:wander_finds_gemini/components/my_textfield.dart';
-import '/services/user_service.dart'; // Ensure this imports the getUser function correctly
+import '/components/my_textfield.dart';
+import '/services/update_review.dart';
+import '/services/user_service.dart';
 import '/components/my_button.dart';
 import '/components/my_appbar.dart';
 import 'onboarding_step4.dart';
-import '/components/container.dart'; // Import the new component
-import '/components/my_textfield.dart'; // Import the AddableTextField component
+import '/components/container.dart';
 
 class ReviewPage extends StatefulWidget {
   const ReviewPage({Key? key}) : super(key: key);
@@ -92,6 +92,7 @@ class _ReviewPageState extends State<ReviewPage> {
                   'Generated with Gemini',
                   style: TextStyle(
                     fontSize: 12,
+                    fontStyle: FontStyle.italic,
                     color: Colors.grey,
                   ),
                 ),
@@ -114,7 +115,9 @@ class _ReviewPageState extends State<ReviewPage> {
               child: Center(
                 child: MyButton(
                   text: "Confirm & Start Exploring",
-                  onTap: () => {},
+                  onTap: () async {
+                    await updateReview(context);
+                  },
                 ),
               ),
             ),

@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/constants.dart';
-import '/pages/onboarding_pages/onboarding_review.dart';
+import '/pages/home.dart';
 
-Future<void> updateOnboardingStep4(BuildContext context, List<String> interests, String otherInterest) async {
+Future<void> updateReview(BuildContext context) async {
   User? currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser == null) {
     print('User not logged in');
@@ -21,16 +21,14 @@ Future<void> updateOnboardingStep4(BuildContext context, List<String> interests,
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, dynamic>{
-        'Interests': interests,
-        'otherInterest': otherInterest,
-        'onboarding_step4': true,
+        'onboardingCompleted': true,
       }),
     );
 
     if (response.statusCode == 200) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const ReviewPage()),
+        MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else {
       print('Failed to update onboarding step: ${response.statusCode}');
@@ -38,4 +36,5 @@ Future<void> updateOnboardingStep4(BuildContext context, List<String> interests,
   } catch (e) {
     print('Error updating onboarding step: $e');
   }
+
 }

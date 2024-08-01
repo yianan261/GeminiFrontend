@@ -4,7 +4,6 @@ import '/constants.dart'; // Import the config file
 import 'dart:convert';
 
 
-
 Future<Map<String, dynamic>> getUser() async{
   User? currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser == null) {
