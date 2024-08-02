@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '/constants.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart'; // Import the geocoding package
 
 Future<void> requestLocation(BuildContext context) async {
   var status = await Permission.location.request();
@@ -16,6 +17,13 @@ Future<void> requestLocation(BuildContext context) async {
     ));
 
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+    final Placemark placemark = placemarks[0];
+    final city = placemark.locality ?? '';
+    final state = placemark.administrativeArea ?? '';
+
+    final weatherData = await fetchWeatherData(position);
+
     // Update onboarding step in Firestore
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -29,7 +37,11 @@ Future<void> requestLocation(BuildContext context) async {
             'accessLocationAllowed': true,
             'location': {
               'latitude': position.latitude,
-              'longitude': position.longitude,
+              'longtitude': position.longitude,
+              'city': city,
+              'state': state,
+              'weather': weatherData['icon'],
+              'temperature': weatherData['temperature'],
             },
           }),
         );
@@ -64,25 +76,9 @@ Future<void> requestLocation(BuildContext context) async {
   }
 }
 
-Future<Map<String, String>> fetchCityState(double latitude, double longitude) async {
+Future<Map<String, dynamic>> fetchWeatherData(Position position) async {
   final response = await http.get(Uri.parse(
-      'https://api.opencagedata.com/geocode/v1/json?q=$latitude+$longitude&key=$openCageApiKey'));
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    final components = data['results'][0]['components'];
-    final city = components['city'] ?? components['town'] ?? components['village'] ?? '';
-    final state = components['state'] ?? '';
-    return {'city': city, 'state': state};
-  } else {
-    print('Failed to fetch city and state');
-    return {'city': '', 'state': ''};
-  }
-}
-
-Future<Map<String, dynamic>> fetchWeatherData(double latitude, double longitude) async {
-  final response = await http.get(Uri.parse(
-      'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$openWeatherMapApiKey&units=imperial'));
+      'https://api.openweathermap.org/data/2.5/weather?lat=${position.latitude}&lon=${position.longitude}&appid=$openWeatherMapApiKey&units=imperial'));
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);

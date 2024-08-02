@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '/services/user_service.dart';
-import '/components/search_bar.dart'; // Ensure the correct path
-import '/services/request_location.dart';  // Import the request_location.dart file
+import '/services/places_service.dart';
+import '/components/search_bar.dart';
+import '/components/places_grid.dart';
 
 class ExplorePage extends StatefulWidget {
   @override
@@ -9,14 +10,13 @@ class ExplorePage extends StatefulWidget {
 }
 
 class _ExplorePageState extends State<ExplorePage> {
-  String places = '';
-  bool isLoading = false;
-  String location = '';
   String cityState = '';
   String weatherIcon = '';
   String temperature = '';
   String greeting = '';
   List<String> userInterests = [];
+  List<Map<String, dynamic>> savedPlaces = []; // List to hold saved places
+  bool isLoading = false;
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -33,13 +33,15 @@ class _ExplorePageState extends State<ExplorePage> {
     try {
       final userData = await getUser();
       userInterests = List<String>.from(userData['interests'] ?? []);
-      final latitude = userData['location']['latitude'];
-      final longitude = userData['location']['longitude'];
-      location = 'Lat: $latitude, Lon: $longitude';
-
-      await _fetchCityStateAndWeather(latitude, longitude);
+      final city = userData['location']['city'];
+      final state = userData['location']['state'];
+      cityState = '$city, $state';
+      weatherIcon = userData['location']['weather'] ?? '🌡️';
+      temperature = userData['location']['temperature'] ?? 'N/A';
       _setGreeting();
-      // await _generatePlaces();
+
+      // Fetch saved places
+      savedPlaces = await fetchSavedPlaces();
     } catch (e) {
       print('Failed to initialize page: $e');
     } finally {
@@ -47,16 +49,6 @@ class _ExplorePageState extends State<ExplorePage> {
         isLoading = false;
       });
     }
-  }
-
-  Future<void> _fetchCityStateAndWeather(double latitude, double longitude) async {
-    final cityStateData = await fetchCityState(latitude, longitude);
-    final weatherData = await fetchWeatherData(latitude, longitude);
-    setState(() {
-      cityState = '${cityStateData['city']}, ${cityStateData['state']}';
-      weatherIcon = weatherData['icon'];
-      temperature = weatherData['temperature'];
-    });
   }
 
   void _setGreeting() {
@@ -98,18 +90,16 @@ class _ExplorePageState extends State<ExplorePage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text('$weatherIcon $temperature°F',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold
-                  )),
+              Text('$weatherIcon $temperature°F', style: TextStyle(fontSize: 16)),
               SizedBox(height: 40),
               Text(
                 '$greeting! Here are some places you might enjoy!',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                ),
               ),
               SizedBox(height: 20),
+              PlacesGrid(savedPlaces: savedPlaces), // Use the PlacesGrid component
             ],
           ),
         ),
