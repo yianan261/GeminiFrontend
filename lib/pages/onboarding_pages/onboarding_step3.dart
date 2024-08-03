@@ -26,20 +26,24 @@ class _OnboardingStep3State extends State<OnboardingStep3> {
   Future<void> fetchUser() async {
     try {
       final responseData = await getUser();
-      setState(() {
-        if (responseData.isNotEmpty) {
-          userName = responseData['displayName'] ?? 'User';
-          isLoading = false;
-        } else {
-          errorMessage = 'Error fetching user info';
-          isLoading = false;
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (responseData.isNotEmpty) {
+            userName = responseData['displayName'] ?? 'User';
+            isLoading = false;
+          } else {
+            errorMessage = 'Error fetching user info';
+            isLoading = false;
+          }
+        });
+      }
     } catch (e) {
-      setState(() {
-        errorMessage = 'Error fetching user info: $e';
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = 'Error fetching user info: $e';
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -68,7 +72,7 @@ class _OnboardingStep3State extends State<OnboardingStep3> {
               SizedBox(height: 20),
               Flexible(
                 child: Text(
-                  'To enhance your experience, you can upload your Google Takeout data. This will help us discover personalized point of interests for you',
+                  'To enhance your experience, you can upload your Google Takeout data. This will help us discover personalized point of interests for you.',
                   style: TextStyle(fontSize: 15),
                   textAlign: TextAlign.center,
                 ),
@@ -76,7 +80,7 @@ class _OnboardingStep3State extends State<OnboardingStep3> {
               SizedBox(height: 100),
               MyButton(
                 text: "Upload Google Takeout Data",
-                onTap: uploadTakeoutData
+                onTap: () => uploadTakeoutData(context),
               ),
               SizedBox(height: 20),
               GestureDetector(

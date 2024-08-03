@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:wander_finds_gemini/services/user_service.dart';
-import 'package:wander_finds_gemini/pages/notifications_edit.dart';
-
+import 'package:permission_handler/permission_handler.dart';
+import '/services/user_service.dart';
+import '/pages/notifications_edit.dart';
+import '/services/sign_out.dart';
+import '/services/background_location_service.dart';  // Import the background location service
 
 class SettingsPage extends StatefulWidget {
   @override
   _SettingsPage createState() => _SettingsPage();
 }
 
-
-
-
 class _SettingsPage extends State<SettingsPage> {
-
   String? displayName;
   String? email;
+  bool isTracking = false;
+  final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
 
   @override
   void initState() {
     super.initState();
+    _backgroundLocationService.configure();
     checkNotifications();
+    checkTrackingStatus();
   }
 
   Future<void> checkNotifications() async {
@@ -28,9 +30,14 @@ class _SettingsPage extends State<SettingsPage> {
       email = user["email"];
       displayName = user['displayName'];
     });
-
   }
 
+  Future<void> checkTrackingStatus() async {
+    var status = await Permission.locationAlways.status;
+    setState(() {
+      isTracking = status.isGranted;
+    });
+  }
 
   void _editDisplayName(BuildContext context) async {
     final newName = await showDialog<String>(
@@ -63,18 +70,25 @@ class _SettingsPage extends State<SettingsPage> {
 
     if (newName != null && newName.isNotEmpty) {
       setState(() {
-         updateUser({"displayName":newName});
+        updateUser({"displayName": newName});
         displayName = newName;
-
       });
+    }
+  }
 
-
+  void _toggleTracking() {
+    setState(() {
+      isTracking = !isTracking;
+    });
+    if (isTracking) {
+      _backgroundLocationService.start();
+    } else {
+      _backgroundLocationService.stop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
@@ -87,22 +101,18 @@ class _SettingsPage extends State<SettingsPage> {
             items: [
               SettingsItem(
                 title: 'Name',
-                subtitle: displayName??"" ,
+                subtitle: displayName ?? "",
                 icon: Icons.edit,
-                onTap: () {_editDisplayName(context);},
+                onTap: () {
+                  _editDisplayName(context);
+                },
               ),
               SettingsItem(
                 title: 'Email',
-                subtitle: email??"",
-                  icon:Icons.email,
+                subtitle: email ?? "",
+                icon: Icons.email,
                 onTap: () {},
               ),
-              // SettingsItem(
-              //   title: 'Update Password',
-              //   subtitle: "",
-              //
-              //   onTap: () {},
-              // ),
             ],
           ),
           Section(
@@ -116,29 +126,37 @@ class _SettingsPage extends State<SettingsPage> {
               SettingsItem(
                 title: 'Notifications',
                 subtitle: "",
-
                 onTap: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) =>  NotificationSettingsPage()),
+                    MaterialPageRoute(builder: (context) => NotificationSettingsPage()),
                   );
-                  },
+                },
               ),
             ],
           ),
           Section(
-            title:"",
+            title: 'Location Tracking',
+            items: [
+              SettingsItem(
+                title: 'Background Location Tracking',
+                subtitle: isTracking ? 'On' : 'Off',
+                onTap: _toggleTracking,
+                icon: isTracking ? Icons.location_on : Icons.location_off,
+              ),
+            ],
+          ),
+          Section(
+            title: "",
             items: [
               SettingsItem(
                 title: 'Privacy Notice',
                 subtitle: "",
-
                 onTap: () {},
               ),
               SettingsItem(
                 title: 'Contact us',
                 subtitle: "",
-
                 onTap: () {},
               ),
             ],
@@ -152,7 +170,9 @@ class _SettingsPage extends State<SettingsPage> {
                 ),
               ),
             ),
-            onTap: () {},
+            onTap: () async {
+              await signOut(context);
+            },
           ),
         ],
       ),
@@ -171,7 +191,7 @@ class Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (title != null)
+        if (title.isNotEmpty)
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
@@ -201,7 +221,7 @@ class SettingsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(title),
-      subtitle: subtitle != null ? Text(subtitle) : null,
+      subtitle: subtitle.isNotEmpty ? Text(subtitle) : null,
       trailing: Icon(icon),
       onTap: onTap,
     );

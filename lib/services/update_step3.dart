@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/constants.dart';
 import '/pages/onboarding_pages/onboarding_step4.dart';
+import 'google_drive_handler.dart';
 
 Future<void> updateOnboardingStep3(BuildContext context) async {
   User? currentUser = FirebaseAuth.instance.currentUser;
@@ -37,9 +38,11 @@ Future<void> updateOnboardingStep3(BuildContext context) async {
     print('Error updating onboarding step: $e');
   }
 }
-
-void uploadTakeoutData() async {
-
-
-
+final googleDriveHandler = GoogleDriveHandler();
+Future<void> uploadTakeoutData(BuildContext context) async {
+  try {
+    await googleDriveHandler.authenticateAndPickFile(context);
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+  }
 }

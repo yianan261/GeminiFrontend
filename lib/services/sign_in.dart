@@ -7,7 +7,11 @@ import '../pages/home.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn(
-  scopes: ['email'],
+  scopes: <String>[
+    'email',
+    'https://www.googleapis.com/auth/drive.readonly'
+  ],
+
 );
 
 Future<Map<String, dynamic>?> signInWithGoogle() async {

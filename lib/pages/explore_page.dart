@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '/services/user_service.dart';
-import '/services/places_service.dart';
+//import '/services/place_service.dart';
 import '/components/search_bar.dart';
 import '/components/places_grid.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import '/services/background_location_service.dart';
 
 class ExplorePage extends StatefulWidget {
   @override
@@ -18,11 +21,13 @@ class _ExplorePageState extends State<ExplorePage> {
   List<Map<String, dynamic>> savedPlaces = []; // List to hold saved places
   bool isLoading = false;
   TextEditingController searchController = TextEditingController();
+  final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
 
   @override
   void initState() {
     super.initState();
     _initializePage();
+    _backgroundLocationService.configure();
   }
 
   Future<void> _initializePage() async {
@@ -31,17 +36,13 @@ class _ExplorePageState extends State<ExplorePage> {
     });
 
     try {
+      // Fetch user data
       final userData = await getUser();
       userInterests = List<String>.from(userData['interests'] ?? []);
-      final city = userData['location']['city'];
-      final state = userData['location']['state'];
-      cityState = '$city, $state';
-      weatherIcon = userData['location']['weather'] ?? '🌡️';
-      temperature = userData['location']['temperature'] ?? 'N/A';
+      await _updateLocationAndWeather();
       _setGreeting();
-
       // Fetch saved places
-      savedPlaces = await fetchSavedPlaces();
+      //savedPlaces = await fetchSavedPlaces();
     } catch (e) {
       print('Failed to initialize page: $e');
     } finally {
@@ -49,6 +50,22 @@ class _ExplorePageState extends State<ExplorePage> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _updateLocationAndWeather() async {
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+    final Placemark placemark = placemarks[0];
+    final city = placemark.locality ?? '';
+    final state = placemark.administrativeArea ?? '';
+
+    final weatherData = await _backgroundLocationService.fetchWeatherData(position.latitude, position.longitude);
+
+    setState(() {
+      cityState = '$city, $state';
+      weatherIcon = weatherData['icon'];
+      temperature = weatherData['temperature'];
+    });
   }
 
   void _setGreeting() {
@@ -99,7 +116,7 @@ class _ExplorePageState extends State<ExplorePage> {
                 ),
               ),
               SizedBox(height: 20),
-              PlacesGrid(savedPlaces: savedPlaces), // Use the PlacesGrid component
+              //PlacesGrid(savedPlaces: savedPlaces), // Use the PlacesGrid component
             ],
           ),
         ),
