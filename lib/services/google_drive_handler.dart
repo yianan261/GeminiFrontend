@@ -5,7 +5,10 @@ import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 import 'sign_in.dart'; // Import the sign_in.dart to use the googleSignIn instance
+import '/constants.dart'; // Import the constants.dart to use the baseUrl
 
 class GoogleDriveHandler {
   Future<void> authenticateAndPickFile(BuildContext context) async {
@@ -80,12 +83,45 @@ class GoogleDriveHandler {
         }
         await file.writeAsBytes(dataStore);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('File selected: ${file.path}')));
+
+        // Upload the file to the backend
+        await uploadFileToBackend(file, googleUser.email, context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No file selected')));
       }
     } catch (error) {
       print(error);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+    }
+  }
+
+  Future<void> uploadFileToBackend(File file, String? userEmail, BuildContext context) async {
+    if (userEmail == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User email is required')));
+      return;
+    }
+
+    final mimeType = lookupMimeType(file.path);
+    final uri = Uri.parse('$baseUrl/process-takeout-files'); // Use the baseUrl
+    final request = http.MultipartRequest('POST', uri)
+      ..fields['email'] = userEmail
+      ..files.add(await http.MultipartFile.fromPath(
+        'files[]',
+        file.path,
+        contentType: MediaType.parse(mimeType!),
+      ));
+
+    try {
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Files processed and saved successfully')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to process files: ${response.statusCode}')));
+      }
+    } catch (error) {
+      print('Error uploading file: $error');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error uploading file: $error')));
     }
   }
 }

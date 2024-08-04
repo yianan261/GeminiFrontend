@@ -40,7 +40,7 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
       final responseData = await getUser();
       setState(() {
         if (responseData.isNotEmpty) {
-          _selectedInterests = List<String>.from(responseData['Interests'] ?? []);
+          _selectedInterests = List<String>.from(responseData['interests'] ?? []);
           isLoading = false;
         } else {
           errorMessage = 'Error fetching user info';

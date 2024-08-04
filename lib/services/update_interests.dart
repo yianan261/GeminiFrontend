@@ -21,8 +21,7 @@ Future<void> updateOnboardingStep4(BuildContext context, List<String> interests,
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, dynamic>{
-        'Interests': interests,
-        'otherInterest': otherInterest,
+        'interests': interests,
         'onboarding_step4': true,
       }),
     );

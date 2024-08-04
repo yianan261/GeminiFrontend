@@ -27,7 +27,7 @@ class BackgroundLocationService {
   void stop() {
     bg.BackgroundGeolocation.stop();
   }
-
+//send back 1 hour
   /*
   * Future<void> _sendLocationToBackend(double latitude, double longitude) async {
     final weatherData = await fetchWeatherData(latitude, longitude);
