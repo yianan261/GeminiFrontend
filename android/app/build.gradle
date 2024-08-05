@@ -28,6 +28,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.example.wanderFindsGemini"
+    compileSdkVersion rootProject.ext.compileSdkVersion
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -43,6 +44,7 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion 23
         targetSdk = flutter.targetSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
     }

@@ -1,40 +1,53 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import '/constants.dart';
+import '/services/user_service.dart';
 import '/pages/home.dart';
 
+// Function to update onboarding step
 Future<void> updateReview(BuildContext context) async {
-  User? currentUser = FirebaseAuth.instance.currentUser;
-  if (currentUser == null) {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
     print('User not logged in');
     return;
   }
 
-  String userId = currentUser.uid;
-
   try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/updateUser?user_id=$userId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'onboardingCompleted': true,
-      }),
-    );
+    bool success = await updateUser({
+      'email': user.email,
+      'onboardingCompleted': true,
+    });
 
-    if (response.statusCode == 200) {
+    if (success) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else {
-      print('Failed to update onboarding step: ${response.statusCode}');
+      print('Failed to update onboarding step.');
     }
   } catch (e) {
     print('Error updating onboarding step: $e');
   }
+}
 
+// Function to add description
+Future<void> addDescription(BuildContext context, String additionalDescription) async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    print('User not logged in');
+    return;
+  }
+
+  try {
+    bool success = await updateUser({
+      'email': user.email,
+      'userDescription': additionalDescription,
+    });
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update description')));
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating description: $e')));
+  }
 }

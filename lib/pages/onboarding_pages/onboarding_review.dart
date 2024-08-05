@@ -15,7 +15,8 @@ class ReviewPage extends StatefulWidget {
 }
 
 class _ReviewPageState extends State<ReviewPage> {
-  String description = "";
+  String geminiDescription = "";
+  String userDescription = "";
   bool isLoading = true;
   String? errorMessage;
   List<String> additionalDescriptions = [];
@@ -32,7 +33,8 @@ class _ReviewPageState extends State<ReviewPage> {
       print(responseData);
       setState(() {
         if (responseData.isNotEmpty) {
-          description = responseData['description'] ?? "";
+          geminiDescription = responseData['geminiDescription'] ?? "";
+          userDescription = responseData['userDescription'] ?? "";
           isLoading = false;
         } else {
           errorMessage = 'Error fetching user info';
@@ -47,10 +49,20 @@ class _ReviewPageState extends State<ReviewPage> {
     }
   }
 
-  void _addDescription(String additionalDescription) {
+  Future<void> _addDescription(String additionalDescription) async {
     setState(() {
       additionalDescriptions.add(additionalDescription);
+      userDescription += " $additionalDescription";
     });
+
+    await addDescription(context, userDescription);
+    // Show Snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Got it!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -81,7 +93,7 @@ class _ReviewPageState extends State<ReviewPage> {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
-            DescriptionBox(description: description),
+            DescriptionBox(description: geminiDescription),
             SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,

@@ -7,6 +7,11 @@ buildscript {
         classpath 'com.android.tools.build:gradle:8.0.2' // Ensure this version matches your Android Gradle plugin version
         classpath 'com.google.gms:google-services:4.3.14' // Add the Google services classpath
     }
+    ext {
+        compileSdkVersion   = 33                // or higher / as desired
+        targetSdkVersion    = 33                // or higher / as desired
+        appCompatVersion    = "1.4.2"           // or higher / as desired
+    }
 }
 
 
@@ -14,6 +19,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // [required] background_fetch
+        maven { url "${project(':background_fetch').projectDir}/libs" }
     }
 }
 
@@ -28,3 +35,4 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDira
 }
+

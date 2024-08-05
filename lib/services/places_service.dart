@@ -1,23 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '/constants.dart'; // Make sure to update this path as necessary
 
-Future<List<Map<String, dynamic>>> fetchSavedPlaces() async {
-  User? currentUser = FirebaseAuth.instance.currentUser;
-  if (currentUser == null) {
-    print('User not logged in');
-    return [];
-  }
+Future<List<Map<String, dynamic>>> fetchPlacesOfInterest(String email, String location) async {
+  final uri = Uri.parse('$baseUrl/getPointOfInterest').replace(queryParameters: {
+    'email': email,
+    'location': location,
+  });
 
-  String userId = currentUser.uid;
-  try {
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('saved_places')
-        .where('user_id', isEqualTo: userId)
-        .get();
+  final response = await http.get(uri);
 
-    return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-  } catch (e) {
-    print('Error fetching saved places: $e');
-    return [];
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return List<Map<String, dynamic>>.from(data['data']);
+  } else {
+    throw Exception('Failed to load places of interest');
   }
 }

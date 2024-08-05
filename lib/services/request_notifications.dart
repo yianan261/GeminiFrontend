@@ -28,11 +28,12 @@ Future<void> permissionNotification(BuildContext context) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final response = await http.post(
-        Uri.parse('$baseUrl/updateUser?user_id=${user.uid}'),
+        Uri.parse('$baseUrl/updateUser?user_id=${user.email}'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, dynamic>{
+          'email': user.email,
           'notificationAllowed': true,
         }),
       );

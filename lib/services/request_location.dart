@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/pages/onboarding_pages/onboarding_step2.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '/constants.dart';
+import 'user_service.dart';  // Import the user_service file
 import 'background_location_service.dart';  // Import the background location service
 
 Future<void> requestLocation(BuildContext context) async {
@@ -25,27 +23,21 @@ Future<void> requestLocation(BuildContext context) async {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         try {
-          final response = await http.post(
-            Uri.parse('$baseUrl/updateUser?user_id=${user.uid}'),
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: jsonEncode(<String, dynamic>{
-              'accessLocationAllowed': true,
-            }),
-          );
+          bool success = await updateUser({
+            'email': user.email, // Add the email to the request body
+            'accessLocationAllowed': true,
+          });
 
           // Check the response status
-          if (response.statusCode == 200) {
-            // Navigate to onboarding step 3
+          if (success) {
+            // Navigate to onboarding step 2
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const AllowNotificationsPage()),
             );
           } else {
             // Handle the error
-            print('Failed to update user: ${response.statusCode}');
-            print('Response body: ${response.body}');
+            print('Failed to update user');
           }
         } catch (e) {
           // Print exceptions

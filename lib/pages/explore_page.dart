@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '/services/user_service.dart';
-//import '/services/place_service.dart';
+import '/services/places_service.dart';
 import '/components/search_bar.dart';
 import '/components/places_grid.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,7 +18,7 @@ class _ExplorePageState extends State<ExplorePage> {
   String temperature = '';
   String greeting = '';
   List<String> userInterests = [];
-  List<Map<String, dynamic>> savedPlaces = []; // List to hold saved places
+  List<Map<String, dynamic>> recommendedPlaces = [];
   bool isLoading = false;
   TextEditingController searchController = TextEditingController();
   final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
@@ -41,8 +41,15 @@ class _ExplorePageState extends State<ExplorePage> {
       userInterests = List<String>.from(userData['interests'] ?? []);
       await _updateLocationAndWeather();
       _setGreeting();
-      // Fetch saved places
-      //savedPlaces = await fetchSavedPlaces();
+
+      // Fetch places of interest based on user location
+      String userLocation = userData['location'] ?? "37.7749,-122.4194"; // Default to San Francisco
+      recommendedPlaces = await fetchPlacesOfInterest(userData['email'], userLocation);
+
+      // Print out the locations
+      for (var place in recommendedPlaces) {
+        print('Place: ${place['name']}, Location: ${place['vicinity']}');
+      }
     } catch (e) {
       print('Failed to initialize page: $e');
     } finally {
@@ -116,7 +123,7 @@ class _ExplorePageState extends State<ExplorePage> {
                 ),
               ),
               SizedBox(height: 20),
-              //PlacesGrid(savedPlaces: savedPlaces), // Use the PlacesGrid component
+              PlacesGrid(savedPlaces: recommendedPlaces), // Display the places in a grid
             ],
           ),
         ),

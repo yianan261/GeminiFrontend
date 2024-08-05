@@ -16,6 +16,10 @@ class GoogleDriveHandler {
       GoogleSignInAccount? googleUser = googleSignIn.currentUser;
 
       if (googleUser == null) {
+        googleUser = await googleSignIn.signInSilently();
+      }
+
+      if (googleUser == null) {
         googleUser = await googleSignIn.signIn();
       }
 

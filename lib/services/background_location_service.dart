@@ -1,5 +1,4 @@
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '/constants.dart';

@@ -6,13 +6,13 @@ import '/constants.dart';
 import '/pages/onboarding_pages/onboarding_review.dart';
 
 Future<void> updateOnboardingStep4(BuildContext context, List<String> interests, String otherInterest) async {
-  User? currentUser = FirebaseAuth.instance.currentUser;
-  if (currentUser == null) {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
     print('User not logged in');
     return;
   }
 
-  String userId = currentUser.uid;
+  String? userId = user.email;
 
   try {
     final response = await http.post(
@@ -21,6 +21,7 @@ Future<void> updateOnboardingStep4(BuildContext context, List<String> interests,
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, dynamic>{
+        'email': user.email,
         'interests': interests,
         'onboarding_step4': true,
       }),
