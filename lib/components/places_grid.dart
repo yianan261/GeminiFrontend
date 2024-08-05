@@ -23,17 +23,30 @@ class PlacesGrid extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.network(
+              place['photo_url'] != null
+                  ? Image.network(
                 place['photo_url'],
                 height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,
+              )
+                  : Container(
+                height: 150,
+                color: Colors.grey,
+                child: Icon(Icons.photo, size: 100, color: Colors.white),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  place['title'],
+                  place['name'] ?? 'No Name',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  place['vicinity'] ?? 'No Address',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ),
             ],

@@ -73,5 +73,7 @@
       <string>http</string>
       <string>https</string>
     </array>
+    <key>GMSApiKey</key>
+    <string>AIzaSyBfw6L1DuggFx0JPSfTn2gACUl4PZUHkao</string>
 </dict>
 </plist>

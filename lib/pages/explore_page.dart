@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '/services/user_service.dart';
 import '/services/places_service.dart';
 import '/components/search_bar.dart';
 import '/components/places_grid.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import '/services/background_location_service.dart';
 
 class ExplorePage extends StatefulWidget {
+
+
   @override
   _ExplorePageState createState() => _ExplorePageState();
 }
@@ -17,9 +19,9 @@ class _ExplorePageState extends State<ExplorePage> {
   String weatherIcon = '';
   String temperature = '';
   String greeting = '';
-  List<String> userInterests = [];
   List<Map<String, dynamic>> recommendedPlaces = [];
   bool isLoading = false;
+  bool locationError = false;
   TextEditingController searchController = TextEditingController();
   final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
 
@@ -36,20 +38,19 @@ class _ExplorePageState extends State<ExplorePage> {
     });
 
     try {
-      // Fetch user data
-      final userData = await getUser();
-      userInterests = List<String>.from(userData['interests'] ?? []);
-      await _updateLocationAndWeather();
+      bool locationFetched = await _updateLocationAndWeather();
+      if (!locationFetched) {
+        setState(() {
+          locationError = true;
+        });
+        return;
+      }
       _setGreeting();
 
-      // Fetch places of interest based on user location
-      String userLocation = userData['location'] ?? "37.7749,-122.4194"; // Default to San Francisco
-      recommendedPlaces = await fetchPlacesOfInterest(userData['email'], userLocation);
+      // Fetch nearby attractions based on user location
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      recommendedPlaces = await fetchNearbyAttractions('${position.latitude},${position.longitude}', 5000);
 
-      // Print out the locations
-      for (var place in recommendedPlaces) {
-        print('Place: ${place['name']}, Location: ${place['vicinity']}');
-      }
     } catch (e) {
       print('Failed to initialize page: $e');
     } finally {
@@ -59,20 +60,28 @@ class _ExplorePageState extends State<ExplorePage> {
     }
   }
 
-  Future<void> _updateLocationAndWeather() async {
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-    final Placemark placemark = placemarks[0];
-    final city = placemark.locality ?? '';
-    final state = placemark.administrativeArea ?? '';
+  Future<bool> _updateLocationAndWeather() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      print('Current position: ${position.latitude}, ${position.longitude}'); // Print current location
+      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      final Placemark placemark = placemarks[0];
+      final city = placemark.locality ?? '';
+      final state = placemark.administrativeArea ?? '';
 
-    final weatherData = await _backgroundLocationService.fetchWeatherData(position.latitude, position.longitude);
+      final weatherData = await _backgroundLocationService.fetchWeatherData(position.latitude, position.longitude);
 
-    setState(() {
-      cityState = '$city, $state';
-      weatherIcon = weatherData['icon'];
-      temperature = weatherData['temperature'];
-    });
+      setState(() {
+        cityState = '$city, $state';
+        weatherIcon = weatherData['icon'];
+        temperature = weatherData['temperature'];
+      });
+
+      return true;
+    } catch (e) {
+      print('Failed to fetch location: $e');
+      return false;
+    }
   }
 
   void _setGreeting() {
@@ -96,6 +105,8 @@ class _ExplorePageState extends State<ExplorePage> {
     return Scaffold(
       body: isLoading
           ? Center(child: CircularProgressIndicator())
+          : locationError
+          ? Center(child: Text("Cannot fetch places without accessing your location."))
           : Padding(
         padding: const EdgeInsets.fromLTRB(20.0, 80.0, 20.0, 20.0),
         child: SingleChildScrollView(
@@ -122,7 +133,7 @@ class _ExplorePageState extends State<ExplorePage> {
                   fontSize: 18,
                 ),
               ),
-              SizedBox(height: 20),
+              //SizedBox(height: 20),
               PlacesGrid(savedPlaces: recommendedPlaces), // Display the places in a grid
             ],
           ),
