@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:wander_finds_gemini/components/my_button.dart';
-import '/components/signout_button.dart';
-import '/services/request_location.dart';
+import 'package:wander_finds_gemini/pages/onboarding_pages/onboarding_step2.dart';
+import '/components/icon_button.dart';
+import '/services/sign_out.dart';
+import '/services/permissions_service.dart';
 
-class AllowLocationPage extends StatelessWidget {
+class AllowLocationPage extends StatefulWidget {
   const AllowLocationPage({super.key});
 
+  @override
+  _AllowLocationPageState createState() => _AllowLocationPageState();
+}
+
+class _AllowLocationPageState extends State<AllowLocationPage> {
+  final PermissionsService _permissionsService = PermissionsService();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
-          SignoutButton(),
+          MyIconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () => signOut(context),
+          ),
         ],
       ),
       body: Center(
@@ -41,7 +52,13 @@ class AllowLocationPage extends StatelessWidget {
               SizedBox(height: 20.0),
               MyButton(
                 text: "Next",
-                onTap: () => requestLocation(context),
+                onTap: () async {
+                  await _permissionsService.requestLocationPermission(context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => AllowNotificationsPage()),
+                  );
+                },
               )
             ],
           ),

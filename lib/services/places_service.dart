@@ -53,3 +53,30 @@ Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String location, int r
     throw Exception('Failed to load nearby attractions');
   }
 }
+
+Future<void> savePlace({
+  required String email,
+  required String place_id,
+  required String address,
+  required String name,
+}) async {
+  final url = Uri.parse('$baseUrl/save-places-to-visit');
+  final response = await http.post(
+    url,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'email': email,
+      'place_id': place_id,
+      'address': address,
+      'name': name,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    print('Place saved successfully');
+  } else {
+    throw Exception('Failed to save place');
+  }
+}

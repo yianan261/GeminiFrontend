@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:wander_finds_gemini/pages/onboarding_pages/onboarding_step1.dart';
-import 'package:wander_finds_gemini/services/request_notifications.dart';
+import 'package:wander_finds_gemini/pages/onboarding_pages/onboarding_step3.dart';
 import '/components/my_button.dart';
 import '/components/my_appbar.dart';
+import '/services/permissions_service.dart';
 
-class AllowNotificationsPage extends StatelessWidget {
+class AllowNotificationsPage extends StatefulWidget {
   const AllowNotificationsPage({super.key});
 
+  @override
+  _AllowNotificationsPageState createState() => _AllowNotificationsPageState();
+}
+
+class _AllowNotificationsPageState extends State<AllowNotificationsPage> {
+  final PermissionsService _permissionsService = PermissionsService();
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -40,7 +47,13 @@ class AllowNotificationsPage extends StatelessWidget {
               SizedBox(height: 20.0),
               MyButton(
                 text: "Next",
-                onTap: () => permissionNotification(context),
+                onTap: () async {
+                  await _permissionsService.requestNotificationPermission(context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => OnboardingStep3()),
+                  );
+                },
               )
             ],
           ),

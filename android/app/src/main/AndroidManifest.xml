@@ -1,5 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     package="com.wanderfinds.app"
     >
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -10,9 +9,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:minSdkVersion="34" android:name="android.permission.USE_EXACT_ALARM" />
+
     <application
-        tools:replace="android:label"
         android:label="wander_finds_gemini"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -43,6 +41,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBfw6L1DuggFx0JPSfTn2gACUl4PZUHkao" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

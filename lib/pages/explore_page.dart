@@ -7,8 +7,6 @@ import 'package:geocoding/geocoding.dart';
 import '/services/location_service.dart';
 
 class ExplorePage extends StatefulWidget {
-
-
   @override
   _ExplorePageState createState() => _ExplorePageState();
 }
@@ -22,7 +20,8 @@ class _ExplorePageState extends State<ExplorePage> {
   bool isLoading = false;
   bool locationError = false;
   TextEditingController searchController = TextEditingController();
-  final LocationService _backgroundLocationService = LocationService();
+  final LocationService _locationService = LocationService();
+  Position? _currentPosition;// Replace this with the actual user email
 
   @override
   void initState() {
@@ -38,6 +37,7 @@ class _ExplorePageState extends State<ExplorePage> {
     try {
       bool locationFetched = await _updateLocationAndWeather();
       if (!locationFetched) {
+        if (!mounted) return;
         setState(() {
           locationError = true;
         });
@@ -46,12 +46,13 @@ class _ExplorePageState extends State<ExplorePage> {
       _setGreeting();
 
       // Fetch nearby attractions based on user location
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      recommendedPlaces = await fetchNearbyAttractions('${position.latitude},${position.longitude}', 5000);
+      _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      recommendedPlaces = await fetchNearbyAttractions('${_currentPosition!.latitude},${_currentPosition!.longitude}', 5000);
 
     } catch (e) {
       print('Failed to initialize page: $e');
     } finally {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -67,8 +68,9 @@ class _ExplorePageState extends State<ExplorePage> {
       final city = placemark.locality ?? '';
       final state = placemark.administrativeArea ?? '';
 
-      final weatherData = await _backgroundLocationService.fetchWeatherData(position.latitude, position.longitude);
+      final weatherData = await _locationService.fetchWeatherData(position.latitude, position.longitude);
 
+      if (!mounted) return false;
       setState(() {
         cityState = '$city, $state';
         weatherIcon = weatherData['icon'];
@@ -106,7 +108,7 @@ class _ExplorePageState extends State<ExplorePage> {
           : locationError
           ? Center(child: Text("Cannot fetch places without accessing your location."))
           : Padding(
-        padding: const EdgeInsets.fromLTRB(20.0, 80.0, 20.0, 20.0),
+        padding: const EdgeInsets.fromLTRB(16.0, 80.0, 20.0, 16.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -131,8 +133,12 @@ class _ExplorePageState extends State<ExplorePage> {
                   fontSize: 18,
                 ),
               ),
-              //SizedBox(height: 20),
-              PlacesGrid(savedPlaces: recommendedPlaces), // Display the places in a grid
+              _currentPosition != null
+                  ? PlacesGrid(
+                recommendedPlaces: recommendedPlaces,
+                currentPosition: _currentPosition!,
+              )
+                  : Center(child: Text("Unable to fetch your current location.")),
             ],
           ),
         ),

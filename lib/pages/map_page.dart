@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '/services/places_service.dart';
+import '/components/place_card.dart'; // Make sure to import the PlaceCard component
 
 class MapPage extends StatefulWidget {
   @override
@@ -15,6 +16,7 @@ class _MapPageState extends State<MapPage> {
   bool isLoading = true;
   bool showSearchButton = false;
   late LatLng initialPosition;
+  Map<String, Map<String, dynamic>> places = {}; // Store place details
 
   @override
   void initState() {
@@ -39,21 +41,49 @@ class _MapPageState extends State<MapPage> {
 
   void _fetchNearbyPlaces(double latitude, double longitude) async {
     try {
-      List<Map<String, dynamic>> places = await fetchNearbyAttractions("$latitude,$longitude", 5000);
+      List<Map<String, dynamic>> fetchedPlaces = await fetchNearbyAttractions("$latitude,$longitude", 5000);
       setState(() {
-        markers.addAll(places.map((place) => Marker(
-          markerId: MarkerId(place['place_id']),
-          position: LatLng(place['geometry']['location']['lat'], place['geometry']['location']['lng']),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          infoWindow: InfoWindow(
-            title: place['name'],
-            snippet: place['vicinity'],
-          ),
-        )));
+        markers.addAll(fetchedPlaces.map((place) {
+          places[place['place_id']] = place; // Store the place details
+          return Marker(
+            markerId: MarkerId(place['place_id']),
+            position: LatLng(place['geometry']['location']['lat'], place['geometry']['location']['lng']),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+            onTap: () {
+              _showPlaceCard(place['place_id']);
+            },
+            infoWindow: InfoWindow(
+              title: place['name'],
+              snippet: place['vicinity'],
+            ),
+          );
+        }));
         isLoading = false;
       });
     } catch (e) {
       print('Failed to load nearby places: $e');
+    }
+  }
+
+  void _showPlaceCard(String placeId) {
+    final place = places[placeId];
+    if (place != null) {
+      showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return FractionallySizedBox(
+            heightFactor: 0.5, // Adjust this value to make the modal bottom sheet shorter
+            child: PlaceCard(
+              place: place,
+              currentPosition: currentPosition,
+            ),
+          );
+        },
+        //isScrollControlled: true, // Add this line to make the sheet not take the full screen height
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+        ),
+      );
     }
   }
 
@@ -73,7 +103,7 @@ class _MapPageState extends State<MapPage> {
       position.target.longitude,
     );
 
-    if (distance > 1000) { // Threshold distance in meters
+    if (distance > 5000) { // Threshold distance in meters
       setState(() {
         showSearchButton = true;
       });
@@ -94,9 +124,10 @@ class _MapPageState extends State<MapPage> {
           GoogleMap(
             initialCameraPosition: CameraPosition(
               target: LatLng(currentPosition.latitude, currentPosition.longitude),
-              zoom: 12,
+              zoom: 13,
             ),
             markers: markers,
+            mapType: MapType.normal,
             onMapCreated: (controller) {
               mapController = controller;
             },
