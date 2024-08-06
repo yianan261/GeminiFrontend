@@ -44,7 +44,6 @@ dependencies:
   http: ^1.2.2
   geolocator: ^7.7.0
   geocoding: ^3.0.0
-  flutter_background_geolocation: ^4.15.5
   googleapis: ^11.0.0
   googleapis_auth: ^1.6.0
   flutter_web_auth: ^0.4.3

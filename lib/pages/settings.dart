@@ -3,7 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '/services/user_service.dart';
 import '/pages/notifications_edit.dart';
 import '/services/sign_out.dart';
-import '/services/background_location_service.dart';  // Import the background location service
+
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -14,12 +14,10 @@ class _SettingsPage extends State<SettingsPage> {
   String? displayName;
   String? email;
   bool isTracking = false;
-  final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
 
   @override
   void initState() {
     super.initState();
-    _backgroundLocationService.configure();
     checkNotifications();
     checkTrackingStatus();
   }
@@ -76,6 +74,7 @@ class _SettingsPage extends State<SettingsPage> {
     }
   }
 
+  /*
   void _toggleTracking() {
     setState(() {
       isTracking = !isTracking;
@@ -85,7 +84,7 @@ class _SettingsPage extends State<SettingsPage> {
     } else {
       _backgroundLocationService.stop();
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +134,7 @@ class _SettingsPage extends State<SettingsPage> {
               ),
             ],
           ),
+          /*
           Section(
             title: 'Location Tracking',
             items: [
@@ -145,7 +145,7 @@ class _SettingsPage extends State<SettingsPage> {
                 icon: isTracking ? Icons.location_on : Icons.location_off,
               ),
             ],
-          ),
+          ),*/
           Section(
             title: "",
             items: [

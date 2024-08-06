@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import '/services/user_service.dart';
 import '/services/places_service.dart';
 import '/components/search_bar.dart';
 import '/components/places_grid.dart';
 import 'package:geocoding/geocoding.dart';
-import '/services/background_location_service.dart';
+import '/services/location_service.dart';
 
 class ExplorePage extends StatefulWidget {
 
@@ -23,13 +22,12 @@ class _ExplorePageState extends State<ExplorePage> {
   bool isLoading = false;
   bool locationError = false;
   TextEditingController searchController = TextEditingController();
-  final BackgroundLocationService _backgroundLocationService = BackgroundLocationService();
+  final LocationService _backgroundLocationService = LocationService();
 
   @override
   void initState() {
     super.initState();
     _initializePage();
-    _backgroundLocationService.configure();
   }
 
   Future<void> _initializePage() async {

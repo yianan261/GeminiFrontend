@@ -3,7 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/pages/onboarding_pages/onboarding_step2.dart';
 import 'user_service.dart';  // Import the user_service file
-import 'background_location_service.dart';  // Import the background location service
+import 'location_service.dart'; // Import the location_service file
 
 Future<void> requestLocation(BuildContext context) async {
   var status = await Permission.locationWhenInUse.request();
@@ -16,8 +16,8 @@ Future<void> requestLocation(BuildContext context) async {
         content: Text('Background location permission granted'),
       ));
 
-      // Start background location service
-      BackgroundLocationService().start();
+      // Fetch the current location using LocationService
+      LocationService locationService = LocationService();
 
       // Update onboarding step in Firestore
       User? user = FirebaseAuth.instance.currentUser;
