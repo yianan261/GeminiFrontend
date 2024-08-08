@@ -1,20 +1,24 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '/constants.dart'; // Ensure this path is correct
+import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
+import '/constants.dart';
 
-Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String location, int radius) async {
+Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String email, double latitude, double longitude, int radius, String weather) async {
   // Define the headers
   var headers = {
     'Content-Type': 'application/json',
   };
 
   // Create the request URL
-  var uri = Uri.parse('$baseUrl/nearby-attractions');
+  var uri = Uri.parse('$baseUrl/get-points-of-interest');
 
   // Create the request body
   var requestBody = json.encode({
-    "location": location,
+    "email": email,
+    "latitude": latitude,
+    "longitude": longitude,
     "radius": radius,
+    "weather": weather,
   });
 
   // Create the HTTP request
@@ -24,29 +28,27 @@ Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String location, int r
 
   // Send the request and get the streamed response
   http.StreamedResponse response = await request.send();
+  final User? user = FirebaseAuth.instance.currentUser;
+  final String? userEmail = user?.email;
 
+  // Fetch bookmarked places
+  List<String> bookmarkedPlaceIds = [];
+  if (userEmail != null) {
+    bookmarkedPlaceIds = await fetchBookmarkedPlaces(userEmail);
+  }
   // Process the response
   if (response.statusCode == 200) {
     var responseBody = await response.stream.bytesToString();
     var data = jsonDecode(responseBody);
-
+    List<Map<String, dynamic>> places = List<Map<String, dynamic>>.from(data['data']);
     // Print out the response data
     //print('Response data: $data');
-
-    // Extract the list of places from the nested structure
-    if (data['data'] is Map && data['data']['results'] is List) {
-      List<Map<String, dynamic>> places = List<Map<String, dynamic>>.from(data['data']['results']);
-      // Add photo URL for each place
-      for (var place in places) {
-        if (place['photos'] != null && place['photos'].isNotEmpty) {
-          var photoReference = place['photos'][0]['photo_reference'];
-          place['photo_url'] = 'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=$photoReference&key=$googleMapAPI';
-        }
-      }
-      return places;
-    } else {
-      throw Exception('Unexpected response format');
+    for (var place in places){
+      place['bookmarked'] = bookmarkedPlaceIds.contains(place['place_id']);
+      place['email'] = userEmail;
     }
+    print("places: $places");
+    return places;
   } else {
     print('Request failed with status: ${response.statusCode}');
     print('Reason: ${response.reasonPhrase}');
@@ -54,11 +56,32 @@ Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String location, int r
   }
 }
 
+
+Future<List<String>> fetchBookmarkedPlaces(String email) async {
+  final url = Uri.parse('$baseUrl/get-bookmarked-places?email=$email');
+  final response = await http.get(
+    url,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    var data = jsonDecode(response.body);
+    if (data['success'] == true) {
+      List<String> placeIds = List<String>.from(data['data'].map((place) => place['place_id']));
+      return placeIds;
+    } else {
+      throw Exception('Failed to fetch bookmarked places: ${data['message']}');
+    }
+  } else {
+    throw Exception('Failed to fetch bookmarked places');
+  }
+}
+
+
 Future<void> savePlace({
-  required String email,
-  required String place_id,
-  required String address,
-  required String name,
+  required Map<String, dynamic> place,
 }) async {
   final url = Uri.parse('$baseUrl/save-places-to-visit');
   final response = await http.post(
@@ -66,17 +89,66 @@ Future<void> savePlace({
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode(<String, String>{
-      'email': email,
-      'place_id': place_id,
-      'address': address,
-      'name': name,
+    body: jsonEncode(<String, dynamic>{
+      'email': place['email'],
+      'place_id': place['place_id'],
+      'address': place['address'],
+      'name': place['title'],
     }),
   );
 
   if (response.statusCode == 200) {
-    print('Place saved successfully');
+    place['bookmarked'] = true;
+    print('Place bookmarked successfully');
   } else {
     throw Exception('Failed to save place');
+  }
+}
+
+Future<void> removeBookmarkedPlace({required Map<String, dynamic> place}) async {
+  final url = Uri.parse('$baseUrl/remove-bookmarked-place');
+  final response = await http.delete(
+    url,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(place),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Failed to remove bookmarked place');
+  }
+}
+
+Future<Map<String, dynamic>> fetchPlaceDetails(String placeID, double currentLatitude, double currentLongitude) async {
+  var headers = {
+    'Content-Type': 'application/json',
+  };
+
+  // Create the request URL
+  var uri = Uri.parse('$baseUrl/place-details');
+  final User? user = FirebaseAuth.instance.currentUser;
+  final String? userEmail = user?.email;
+  // Create the request body
+  var requestBody = json.encode({
+    "email": userEmail,
+    "placeId": placeID,
+    "latitude": currentLatitude,
+    "longitude": currentLongitude,
+  });
+
+  var request = http.Request('GET', uri)
+    ..body = requestBody
+    ..headers.addAll(headers);
+
+  // Send the request and get the streamed response
+  http.StreamedResponse response = await request.send();
+
+  if (response.statusCode == 200) {
+    var responseBody = await response.stream.bytesToString();
+    var place = jsonDecode(responseBody);
+    return place;
+  } else {
+    throw Exception('Failed to fetch place details');
   }
 }

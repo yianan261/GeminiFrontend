@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'place_card.dart';
 
 class PlacesGrid extends StatelessWidget {
   final List<Map<String, dynamic>> recommendedPlaces;
-  final Position currentPosition;
 
   const PlacesGrid({
     Key? key,
     required this.recommendedPlaces,
-    required this.currentPosition,
   }) : super(key: key);
 
   @override
@@ -26,10 +23,9 @@ class PlacesGrid extends StatelessWidget {
       itemCount: recommendedPlaces.length,
       itemBuilder: (context, index) {
         final place = recommendedPlaces[index];
-        print('passing place to placecard: $place');
+        //print('passing place to placecard: $place');
         return PlaceCard(
           place: place,
-          currentPosition: currentPosition,
         );
       },
     );

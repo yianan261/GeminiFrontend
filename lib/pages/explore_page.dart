@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Authentication
 import '/services/places_service.dart';
 import '/components/search_bar.dart';
 import '/components/places_grid.dart';
@@ -21,7 +22,7 @@ class _ExplorePageState extends State<ExplorePage> {
   bool locationError = false;
   TextEditingController searchController = TextEditingController();
   final LocationService _locationService = LocationService();
-  Position? _currentPosition;// Replace this with the actual user email
+  Position? _currentPosition;
 
   @override
   void initState() {
@@ -47,7 +48,23 @@ class _ExplorePageState extends State<ExplorePage> {
 
       // Fetch nearby attractions based on user location
       _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      recommendedPlaces = await fetchNearbyAttractions('${_currentPosition!.latitude},${_currentPosition!.longitude}', 5000);
+      final weather = temperature; // Use temperature as a proxy for weather
+
+      // Get the current user's email from Firebase Authentication
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('No user logged in.');
+        return;
+      }
+      final email = user.email;
+
+      recommendedPlaces = await fetchNearbyAttractions(
+        email!,
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        25,
+        weather,
+      );
 
     } catch (e) {
       print('Failed to initialize page: $e');
@@ -136,7 +153,6 @@ class _ExplorePageState extends State<ExplorePage> {
               _currentPosition != null
                   ? PlacesGrid(
                 recommendedPlaces: recommendedPlaces,
-                currentPosition: _currentPosition!,
               )
                   : Center(child: Text("Unable to fetch your current location.")),
             ],

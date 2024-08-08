@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Authentication
 import '/services/places_service.dart';
 import '/components/place_card.dart'; // Make sure to import the PlaceCard component
+import '/services/location_service.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -17,6 +19,7 @@ class _MapPageState extends State<MapPage> {
   bool showSearchButton = false;
   late LatLng initialPosition;
   Map<String, Map<String, dynamic>> places = {}; // Store place details
+  final LocationService _locationService = LocationService();
 
   @override
   void initState() {
@@ -40,21 +43,44 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _fetchNearbyPlaces(double latitude, double longitude) async {
+    print('Fetching nearby places for latitude: $latitude, longitude: $longitude');
     try {
-      List<Map<String, dynamic>> fetchedPlaces = await fetchNearbyAttractions("$latitude,$longitude", 5000);
+      final weatherData = await _locationService.fetchWeatherData(latitude, longitude);
+      final weather = weatherData['temperature']; // Use temperature as a proxy for weather
+
+      // Get the current user's email from Firebase Authentication
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('No user logged in.');
+        return;
+      }
+      final email = user.email;
+
+      List<Map<String, dynamic>> fetchedPlaces = await fetchNearbyAttractions(
+        email!,
+        latitude,
+        longitude,
+        1,
+        weather,
+      );
+
       setState(() {
         markers.addAll(fetchedPlaces.map((place) {
+          final lat = place['location']['latitude'];
+          final lng = place['location']['longitude'];
+          final parsedLat = lat is String ? double.parse(lat) : lat;
+          final parsedLng = lng is String ? double.parse(lng) : lng;
           places[place['place_id']] = place; // Store the place details
           return Marker(
             markerId: MarkerId(place['place_id']),
-            position: LatLng(place['geometry']['location']['lat'], place['geometry']['location']['lng']),
+            position: LatLng(parsedLat, parsedLng),
             icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
             onTap: () {
               _showPlaceCard(place['place_id']);
             },
             infoWindow: InfoWindow(
-              title: place['name'],
-              snippet: place['vicinity'],
+              title: place['title'],
+              snippet: place['address'],
             ),
           );
         }));
@@ -75,11 +101,10 @@ class _MapPageState extends State<MapPage> {
             heightFactor: 0.5, // Adjust this value to make the modal bottom sheet shorter
             child: PlaceCard(
               place: place,
-              currentPosition: currentPosition,
             ),
           );
         },
-        //isScrollControlled: true, // Add this line to make the sheet not take the full screen height
+        // isScrollControlled: true, // Add this line to make the sheet not take the full screen height
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
         ),

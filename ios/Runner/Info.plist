@@ -75,5 +75,12 @@
     </array>
     <key>GMSApiKey</key>
     <string>AIzaSyBfw6L1DuggFx0JPSfTn2gACUl4PZUHkao</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your photo library to upload cover photos for your profile.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>We need access to your camera to take photos for your profile.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>We need access to your microphone to record videos for your profile.</string>
+
 </dict>
 </plist>
