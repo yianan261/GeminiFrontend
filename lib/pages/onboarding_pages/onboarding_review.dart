@@ -24,11 +24,14 @@ class _ReviewPageState extends State<ReviewPage> {
   @override
   void initState() {
     super.initState();
-    fetchUser();
+    _generateAndFetchDescription();
   }
-
-  Future<void> fetchUser() async {
+  Future<void> _generateAndFetchDescription() async {
     try {
+      // Step 1: Generate the description
+      final generateResponse = await generateUserDescription();
+
+      // Step 2: Fetch the generated description from the database
       final responseData = await getUser();
       print(responseData);
       setState(() {
@@ -43,7 +46,7 @@ class _ReviewPageState extends State<ReviewPage> {
       });
     } catch (e) {
       setState(() {
-        errorMessage = 'Error fetching user info: $e';
+        errorMessage = 'Error generating or fetching user info: $e';
         isLoading = false;
       });
     }
@@ -65,14 +68,14 @@ class _ReviewPageState extends State<ReviewPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(
-        navigateTo: OnboardingStep4(), // Adjust this as necessary
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: CustomAppBar(
+          navigateTo: OnboardingStep4(), // Adjust this as necessary
+        ),
+        body: isLoading
+            ? Center(child: CircularProgressIndicator())
           : errorMessage != null
           ? Center(child: Text(errorMessage!))
           : Padding(

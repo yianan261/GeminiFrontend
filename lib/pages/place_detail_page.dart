@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '/services/places_service.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PlaceDetailPage extends StatefulWidget {
   final String placeId;
@@ -28,11 +29,13 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
 
   Future<void> _getCurrentPositionAndFetchDetails() async {
     try {
-      _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      final details = await fetchPlaceDetails(widget.placeId, _currentPosition!.latitude, _currentPosition!.longitude);
-      print("details: $details");
+      _currentPosition = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      final details = await fetchPlaceDetails(widget.placeId,
+          _currentPosition!.latitude, _currentPosition!.longitude);
       setState(() {
-        placeDetails = details['data'];
+        placeDetails = details;
+        //print(placeDetails);
         isLoading = false;
       });
     } catch (e) {
@@ -43,124 +46,221 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     }
   }
 
+  void _toggleBookmark() async {
+    if (placeDetails != null) {
+      try {
+        if (placeDetails!['bookmarked']) {
+          await removeBookmarkedPlace(place: placeDetails!);
+        } else {
+          await savePlace(place: placeDetails!);
+        }
+
+        setState(() {
+          placeDetails!['bookmarked'] = !placeDetails!['bookmarked'];
+        });
+      } catch (e) {
+        print('Failed to toggle bookmark: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Place Details"),
+        actions: [
+          if (placeDetails != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: CircleAvatar(
+                backgroundColor: Colors.black,
+                radius: 16,
+                child: IconButton(
+                  icon: Icon(
+                    placeDetails!['bookmarked']
+                        ? Icons.bookmark
+                        : Icons.bookmark_border,
+                    color: placeDetails!['bookmarked']
+                        ? Colors.yellow
+                        : Colors.white,
+                  ),
+                  iconSize: 15.0,
+                  onPressed: _toggleBookmark,
+                ),
+              ),
+            ),
+        ],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : errorMessage != null
-          ? Center(child: Text(errorMessage!))
-          : placeDetails == null
-          ? Center(child: Text('No data found'))
-          : SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (placeDetails!['photo_url'] != null && placeDetails!['photo_url'].isNotEmpty)
-              SizedBox(
-                height: 200,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: placeDetails!['photo_url'].length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Image.network(placeDetails!['photo_url'][index]),
-                    );
-                  },
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                placeDetails!['title'] ?? 'No Name',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                placeDetails!['address'] ?? 'No Address',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                placeDetails!['editorial_summary'] ?? '',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Handle get directions
-                },
-                child: Text('Get Directions'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Interesting Facts',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                placeDetails!['interesting_facts'] ?? 'No interesting facts available',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Current Opening Hours',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ...placeDetails!['currentOpeningHours']?.map<Widget>((hour) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  hour,
-                  style: TextStyle(fontSize: 16),
-                ),
-              );
-            })?.toList() ?? [Text('No opening hours available')],
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Reviews',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ...placeDetails!['reviews']?.map<Widget>((review) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      review['author_name'] ?? 'Anonymous',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ? Center(child: Text(errorMessage!))
+              : placeDetails == null
+                  ? Center(child: Text('No data found'))
+                  : SingleChildScrollView(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (placeDetails!['photo_url'] != null &&
+                                placeDetails!['photo_url'].isNotEmpty)
+                              SizedBox(
+                                height: 200,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: placeDetails!['photo_url'].length,
+                                  itemBuilder: (context, index) {
+                                    return Stack(
+                                      children: [
+                                        Container(
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          child: Image.network(
+                                            placeDetails!['photo_url'][index],
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          bottom: 8,
+                                          right: 8,
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 2.0, horizontal: 8.0),
+                                            color: Colors.black54,
+                                            child: Text(
+                                              '${index + 1}/${placeDetails!['photo_url'].length}',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                placeDetails!['title'] ?? 'No Name',
+                                style: TextStyle(
+                                    fontSize: 25, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(children: [
+                                  Text(
+                                    placeDetails!['editorial_summary'] ?? '',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  SizedBox(height: 10.0),
+                                  Divider(color: Colors.grey[300]),
+                                ])),
+                            Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Location',
+                                        style: TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(placeDetails!['address'] ??
+                                          'No Address'),
+                                      TextButton.icon(
+                                        onPressed: () async {
+                                          final String googleMapsUrl =
+                                              "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(placeDetails!['address'] ?? '')}";
+                                          if (await canLaunch(googleMapsUrl)) {
+                                            await launch(googleMapsUrl);
+                                          } else {
+                                            throw 'Could not open the map.';
+                                          }
+                                        },
+                                        icon: Icon(Icons.directions,
+                                            color: Colors.blue),
+                                        label: Text(
+                                          'Get Directions',
+                                          style: TextStyle(color: Colors.blue),
+                                        ),
+                                        style: TextButton.styleFrom(
+                                          padding: EdgeInsets.zero,
+                                          minimumSize: Size(50, 30),
+                                          alignment: Alignment.centerLeft,
+                                        ),
+                                      ),
+                                      SizedBox(height: 10.0),
+                                      Divider(color: Colors.grey[300]),
+                                    ])),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Interesting Facts',
+                                      style: TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold),
+                                    ), // Horizontal line
+                                    Text(
+                                      placeDetails!['interesting_facts'] ??
+                                          'No interesting facts available',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    SizedBox(height: 10.0),
+                                    Divider(color: Colors.grey[300]),
+                                  ]),
+                            ),
+                            Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Reviews',
+                                      style: TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    ...placeDetails!['reviews']
+                                            ?.map<Widget>((review) {
+                                          return Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  review['author_name'] ??
+                                                      'Anonymous',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  review['text'] ?? '',
+                                                  style:
+                                                      TextStyle(fontSize: 16),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        })?.toList() ??
+                                        [],
+                                  ],
+                                ))
+                          ]),
                     ),
-                    Text(
-                      review['text'] ?? '',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-              );
-            })?.toList() ?? [],
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Authentication
 import '/services/places_service.dart';
-import '/components/place_card.dart'; // Make sure to import the PlaceCard component
+import '/components/place_card.dart';
 import '/services/location_service.dart';
+import '/components/search_bar.dart';  // Assuming you have a reusable search bar component
+import 'package:geocoding/geocoding.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -20,6 +21,7 @@ class _MapPageState extends State<MapPage> {
   late LatLng initialPosition;
   Map<String, Map<String, dynamic>> places = {}; // Store place details
   final LocationService _locationService = LocationService();
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -43,24 +45,13 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _fetchNearbyPlaces(double latitude, double longitude) async {
-    print('Fetching nearby places for latitude: $latitude, longitude: $longitude');
     try {
       final weatherData = await _locationService.fetchWeatherData(latitude, longitude);
       final weather = weatherData['temperature']; // Use temperature as a proxy for weather
-
-      // Get the current user's email from Firebase Authentication
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print('No user logged in.');
-        return;
-      }
-      final email = user.email;
-
       List<Map<String, dynamic>> fetchedPlaces = await fetchNearbyAttractions(
-        email!,
         latitude,
         longitude,
-        1,
+        5,
         weather,
       );
 
@@ -104,7 +95,6 @@ class _MapPageState extends State<MapPage> {
             ),
           );
         },
-        // isScrollControlled: true, // Add this line to make the sheet not take the full screen height
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
         ),
@@ -139,6 +129,41 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  Future<void> _searchPlaces() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      List<Location> locations = await locationFromAddress(searchController.text);
+      if (locations.isNotEmpty) {
+        final location = locations[0];
+        final latitude = location.latitude;
+        final longitude = location.longitude;
+
+        // Move the map to the searched location
+        mapController.animateCamera(
+          CameraUpdate.newLatLngZoom(
+            LatLng(latitude, longitude),
+            13, // Adjust the zoom level as needed
+          ),
+        );
+
+        // Fetch and display places near the searched location
+        _fetchNearbyPlaces(latitude, longitude);
+      } else {
+        print("No locations found for the given search query.");
+      }
+    } catch (e) {
+      print('Failed to search places: $e');
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,9 +183,18 @@ class _MapPageState extends State<MapPage> {
             },
             onCameraMove: _onCameraMove,
           ),
+          Positioned(
+            top: 40,
+            left: 16,
+            right: 16,
+            child: MySearchBar(
+              controller: searchController,
+              onSearch: _searchPlaces,
+            ),
+          ),
           if (showSearchButton)
             Positioned(
-              top: 80,
+              top: 120, // Adjusted top position to move the button down
               left: MediaQuery.of(context).size.width / 2 - 80,
               child: ElevatedButton.icon(
                 icon: Icon(Icons.search),

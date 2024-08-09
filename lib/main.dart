@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'pages/onboarding_pages/onboarding_review.dart';
 import 'pages/auth_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';

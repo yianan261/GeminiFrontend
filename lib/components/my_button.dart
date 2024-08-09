@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class MyButton extends StatelessWidget {
   final String text;
   final Function()? onTap;
-  final String? imagePath; // Optional image path
+  final String? imagePath;// Optional image path
 
   const MyButton({
     Key? key,

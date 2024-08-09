@@ -99,14 +99,7 @@ class _PlaceCardState extends State<PlaceCard> {
               child: Text(
                 widget.place['title'] ?? 'No Name',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                widget.place['address'] ?? 'No Address',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                //overflow: TextOverflow.ellipsis,
               ),
             ),
             Padding(

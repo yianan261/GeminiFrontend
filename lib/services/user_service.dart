@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
-import '/constants.dart'; // Import the config file
+import '/constants.dart';
 import 'dart:convert';
 
 // Function to create a new user
@@ -40,7 +40,7 @@ Future<Map<String, dynamic>> getUser() async {
 
   String userId = currentUser.email!; // Using email as UID
   try {
-    final response = await http.get(
+    final response = await http.post(
       Uri.parse('$baseUrl/users/$userId'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
@@ -87,5 +87,25 @@ Future<bool> updateUser(Map<String, dynamic> data) async {
   } catch (e) {
     print('Error updating user data: $e');
     return false;
+  }
+}
+
+Future<String?> generateUserDescription() async {
+  User? currentUser = FirebaseAuth.instance.currentUser;
+
+  String email = currentUser!.email!;
+
+  final url = Uri.parse('$baseUrl/generateUserDescription');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({'email': email}),
+  );
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    return data['data']['geminiDescription'];
+  } else {
+    throw Exception('Failed to generate user description');
   }
 }

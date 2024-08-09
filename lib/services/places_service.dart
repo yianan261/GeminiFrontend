@@ -3,7 +3,17 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import '/constants.dart';
 
-Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String email, double latitude, double longitude, int radius, String weather) async {
+Future<String?> getUserEmail() async {
+  final User? user = FirebaseAuth.instance.currentUser;
+  return user?.email;
+}
+
+Future<List<Map<String, dynamic>>> fetchNearbyAttractions(double latitude, double longitude, int radius, String weather) async {
+  final String? email = await getUserEmail();
+  if (email == null) {
+    throw Exception('No user logged in');
+  }
+
   // Define the headers
   var headers = {
     'Content-Type': 'application/json',
@@ -22,20 +32,15 @@ Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String email, double l
   });
 
   // Create the HTTP request
-  var request = http.Request('GET', uri)
+  var request = http.Request('POST', uri)
     ..body = requestBody
     ..headers.addAll(headers);
 
   // Send the request and get the streamed response
   http.StreamedResponse response = await request.send();
-  final User? user = FirebaseAuth.instance.currentUser;
-  final String? userEmail = user?.email;
-
   // Fetch bookmarked places
   List<String> bookmarkedPlaceIds = [];
-  if (userEmail != null) {
-    bookmarkedPlaceIds = await fetchBookmarkedPlaces(userEmail);
-  }
+  bookmarkedPlaceIds = await fetchBookmarkedPlaces(email);
   // Process the response
   if (response.statusCode == 200) {
     var responseBody = await response.stream.bytesToString();
@@ -45,7 +50,6 @@ Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String email, double l
     //print('Response data: $data');
     for (var place in places){
       place['bookmarked'] = bookmarkedPlaceIds.contains(place['place_id']);
-      place['email'] = userEmail;
     }
     print("places: $places");
     return places;
@@ -59,7 +63,7 @@ Future<List<Map<String, dynamic>>> fetchNearbyAttractions(String email, double l
 
 Future<List<String>> fetchBookmarkedPlaces(String email) async {
   final url = Uri.parse('$baseUrl/get-bookmarked-places?email=$email');
-  final response = await http.get(
+  final response = await http.post(
     url,
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
@@ -83,6 +87,11 @@ Future<List<String>> fetchBookmarkedPlaces(String email) async {
 Future<void> savePlace({
   required Map<String, dynamic> place,
 }) async {
+  final String? email = await getUserEmail();
+  if (email == null) {
+    throw Exception('No user logged in');
+  }
+
   final url = Uri.parse('$baseUrl/save-places-to-visit');
   final response = await http.post(
     url,
@@ -90,10 +99,12 @@ Future<void> savePlace({
       'Content-Type': 'application/json; charset=UTF-8',
     },
     body: jsonEncode(<String, dynamic>{
-      'email': place['email'],
+      'email': email,
       'place_id': place['place_id'],
-      'address': place['address'],
-      'name': place['title'],
+      'title': place['title'],
+      'photo_url': place['photo_url'],
+      'distance': place['distance'],
+      'bookmarked': true
     }),
   );
 
@@ -121,34 +132,67 @@ Future<void> removeBookmarkedPlace({required Map<String, dynamic> place}) async 
 }
 
 Future<Map<String, dynamic>> fetchPlaceDetails(String placeID, double currentLatitude, double currentLongitude) async {
+  final String? email = await getUserEmail();
+  if (email == null) {
+    throw Exception('No user logged in');
+  }
   var headers = {
     'Content-Type': 'application/json',
   };
 
   // Create the request URL
   var uri = Uri.parse('$baseUrl/place-details');
-  final User? user = FirebaseAuth.instance.currentUser;
-  final String? userEmail = user?.email;
   // Create the request body
   var requestBody = json.encode({
-    "email": userEmail,
+    "email": email,
     "placeId": placeID,
     "latitude": currentLatitude,
     "longitude": currentLongitude,
   });
 
-  var request = http.Request('GET', uri)
+  var request = http.Request('POST', uri)
     ..body = requestBody
     ..headers.addAll(headers);
 
   // Send the request and get the streamed response
   http.StreamedResponse response = await request.send();
+  List<String> bookmarkedPlaceIds = [];
+  bookmarkedPlaceIds = await fetchBookmarkedPlaces(email);
 
   if (response.statusCode == 200) {
     var responseBody = await response.stream.bytesToString();
-    var place = jsonDecode(responseBody);
+    var place = jsonDecode(responseBody)['data'];
+    place['bookmarked'] = bookmarkedPlaceIds.contains(place['place_id']);
     return place;
   } else {
     throw Exception('Failed to fetch place details');
+  }
+}
+
+Future<List<Map<String, dynamic>>> searchPointOfInterest(String query, double latitude, double longitude, int radius, String weather) async {
+  final String? email = await getUserEmail();
+  if (email == null) {
+    throw Exception('No user logged in');
+  }
+
+  final url = Uri.parse('$baseUrl/search-points-of-interest');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'email': email,
+      'query': query,
+      'latitude': latitude,
+      'longitude': longitude,
+      'radius': radius,
+      'weather': weather
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body)['data'];
+    return data.cast<Map<String, dynamic>>();
+  } else {
+    throw Exception('Failed to load search results');
   }
 }

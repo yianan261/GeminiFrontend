@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Authentication
 import '/services/places_service.dart';
 import '/components/search_bar.dart';
 import '/components/places_grid.dart';
@@ -49,17 +48,7 @@ class _ExplorePageState extends State<ExplorePage> {
       // Fetch nearby attractions based on user location
       _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       final weather = temperature; // Use temperature as a proxy for weather
-
-      // Get the current user's email from Firebase Authentication
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print('No user logged in.');
-        return;
-      }
-      final email = user.email;
-
       recommendedPlaces = await fetchNearbyAttractions(
-        email!,
         _currentPosition!.latitude,
         _currentPosition!.longitude,
         25,
@@ -76,10 +65,25 @@ class _ExplorePageState extends State<ExplorePage> {
     }
   }
 
-  Future<bool> _updateLocationAndWeather() async {
+  Future<bool> _updateLocationAndWeather({double? latitude, double? longitude}) async {
     try {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      print('Current position: ${position.latitude}, ${position.longitude}'); // Print current location
+      Position position;
+      if (latitude != null && longitude != null) {
+        position = Position(
+          latitude: latitude,
+          longitude: longitude,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+        );
+      } else {
+        position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      }
+
+      //print('Current position: ${position.latitude}, ${position.longitude}'); // Print current location
       List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
       final Placemark placemark = placemarks[0];
       final city = placemark.locality ?? '';
@@ -112,9 +116,45 @@ class _ExplorePageState extends State<ExplorePage> {
     }
   }
 
-  void _searchPlaces() {
-    // You can add logic to filter places based on search input
-    print('Search: ${searchController.text}');
+  Future<void> _searchPlaces() async {
+    if (_currentPosition == null) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      List<Location> locations = await locationFromAddress(searchController.text);
+      /*if (locations.isNotEmpty) {
+        final location = locations[0];
+        final latitude = location.latitude;
+        final longitude = location.longitude;
+        // Update the header with the location and weather of the search query
+        await _updateLocationAndWeather(latitude: latitude, longitude: longitude);
+        recommendedPlaces = await searchPointOfInterest(
+          searchController.text,
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+          25,
+          temperature,
+        );
+      } else {*/
+        recommendedPlaces = await searchPointOfInterest(
+          searchController.text,
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
+          25,
+          temperature,
+        );
+      //}
+    } catch (e) {
+      print('Failed to search places: $e');
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override

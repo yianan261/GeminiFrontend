@@ -9,7 +9,8 @@ class MyIconButton extends StatelessWidget {
     Key? key,
     required this.icon,
     required this.onPressed,
-    this.iconSize = 24.0, // Default size is 24.0
+    this.iconSize = 24.0,
+    // Default size is 24.0
   }) : super(key: key);
 
   @override

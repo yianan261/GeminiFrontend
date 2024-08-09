@@ -5,7 +5,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '/services/user_service.dart';
-import '/pages/settings.dart';
+import 'settings.dart';
+import 'places_list_page.dart';
+import '/components/count_card.dart'; // Import the CountCard component
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -17,7 +19,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String userName = '';
   String photoUrl = '';
   String coverPhotoUrl = 'assets/images/defaultcover.jpg';
-  Map<String, dynamic> bookmarkedPlaces = {};
+  List<Map<String, dynamic>> bookmarkedPlaces = [];
 
   @override
   void initState() {
@@ -33,7 +35,8 @@ class _ProfilePageState extends State<ProfilePage> {
         userName = userData['displayName'] ?? '';
         photoUrl = userData['photoURL'] ?? '';
         coverPhotoUrl = userData['coverPhotoURL'] ?? 'assets/images/defaultcover.jpg';
-        bookmarkedPlaces = userData['bookmarked_places'] ?? {};
+        bookmarkedPlaces = List<Map<String, dynamic>>.from(userData['bookmarked_places'].values.toList() ?? []);
+        print(bookmarkedPlaces);
       });
     }
   }
@@ -109,6 +112,17 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _navigateToBookmarkedPlaces() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlacesList(
+          places: bookmarkedPlaces,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,32 +195,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildCountCard('Places Visited', 10), // Replace 10 with your dynamic count
-                      _buildCountCard('Places to Visit', bookmarkedPlaces.length),
+                      CountCard(
+                        title: 'Places Visited',
+                        count: 10, // Replace 10 with your dynamic count
+                      ),
+                      CountCard(
+                        title: 'Places to Visit',
+                        count: bookmarkedPlaces.length,
+                        onTap: _navigateToBookmarkedPlaces,
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
             // Add more user information here if needed
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCountCard(String title, int count) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Text(
-              '$count',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text(title),
           ],
         ),
       ),
