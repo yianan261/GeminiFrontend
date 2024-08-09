@@ -130,12 +130,12 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                   Padding(
                     padding: const EdgeInsets.only(right: 16.0),
                     child: CircleAvatar(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.black,
                       radius: 16,
                       child: IconButton(
                         icon: Icon(
-                          isVisited ? Icons.check : Icons.flag,
-                          color: Colors.white,
+                          isVisited ? Icons.flag : Icons.emoji_flags_outlined,
+                          color: isVisited ? Colors.yellow : Colors.white,
                         ),
                         iconSize: 15.0,
                         onPressed: _toggleVisited,

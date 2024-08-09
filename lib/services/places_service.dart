@@ -49,6 +49,7 @@ Future<List<Map<String, dynamic>>> fetchNearbyAttractions(double latitude, doubl
     // Print out the response data
     //print('Response data: $data');
     for (var place in places){
+      place['email'] = email;
       place['bookmarked'] = bookmarkedPlaceIds.contains(place['place_id']);
     }
     print("places: $places");
@@ -117,14 +118,22 @@ Future<void> savePlace({
 }
 
 Future<void> removeBookmarkedPlace({required Map<String, dynamic> place}) async {
+  final String? email = await getUserEmail();
+  if (email == null) {
+    throw Exception('No user logged in');
+  }
   final url = Uri.parse('$baseUrl/remove-bookmarked-place');
   final response = await http.delete(
     url,
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode(place),
+    body: jsonEncode(<String, dynamic>{
+      'email': email,
+      'place_id': place['place_id'],
+    }),
   );
+  //print('Response body: ${response.body}');
 
   if (response.statusCode != 200) {
     throw Exception('Failed to remove bookmarked place');

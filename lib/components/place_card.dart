@@ -26,6 +26,7 @@ class _PlaceCardState extends State<PlaceCard> {
     isBookmarked = widget.place['bookmarked'] ?? false;
   }
 
+
   void _toggleBookmark() async {
     try {
       if (isBookmarked) {
@@ -36,6 +37,7 @@ class _PlaceCardState extends State<PlaceCard> {
 
       setState(() {
         isBookmarked = !isBookmarked;
+        widget.place['bookmarked'] = isBookmarked;
       });
     } catch (e) {
       print('Failed to toggle bookmark: $e');
