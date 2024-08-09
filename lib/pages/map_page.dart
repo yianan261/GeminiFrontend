@@ -13,12 +13,13 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  late GoogleMapController mapController;
+  GoogleMapController? mapController; // Made nullable
   late Position currentPosition;
   Set<Marker> markers = {};
   bool isLoading = true;
   bool showSearchButton = false;
   late LatLng initialPosition;
+  LatLng? searchedLocation; // New location variable to track search queries
   Map<String, Map<String, dynamic>> places = {}; // Store place details
   final LocationService _locationService = LocationService();
   TextEditingController searchController = TextEditingController();
@@ -103,7 +104,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   void _onSearchThisArea() {
-    mapController.getVisibleRegion().then((bounds) {
+    mapController?.getVisibleRegion().then((bounds) {
       double latitude = (bounds.northeast.latitude + bounds.southwest.latitude) / 2;
       double longitude = (bounds.northeast.longitude + bounds.southwest.longitude) / 2;
       _fetchNearbyPlaces(latitude, longitude);
@@ -135,22 +136,25 @@ class _MapPageState extends State<MapPage> {
     });
 
     try {
+      // Get locations from the search query
       List<Location> locations = await locationFromAddress(searchController.text);
+
       if (locations.isNotEmpty) {
         final location = locations[0];
-        final latitude = location.latitude;
-        final longitude = location.longitude;
+        searchedLocation = LatLng(location.latitude, location.longitude);
 
-        // Move the map to the searched location
-        mapController.animateCamera(
-          CameraUpdate.newLatLngZoom(
-            LatLng(latitude, longitude),
-            13, // Adjust the zoom level as needed
-          ),
-        );
-
-        // Fetch and display places near the searched location
-        _fetchNearbyPlaces(latitude, longitude);
+        setState(() {
+          // Update the UI to display the map centered on the searched location
+          markers.clear();
+          markers.add(
+            Marker(
+              markerId: MarkerId("searched_location"),
+              position: searchedLocation!,
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+            ),
+          );
+          _fetchNearbyPlaces(searchedLocation!.latitude, searchedLocation!.longitude);
+        });
       } else {
         print("No locations found for the given search query.");
       }
@@ -173,7 +177,7 @@ class _MapPageState extends State<MapPage> {
         children: [
           GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: LatLng(currentPosition.latitude, currentPosition.longitude),
+              target: searchedLocation ?? LatLng(currentPosition.latitude, currentPosition.longitude),
               zoom: 13,
             ),
             markers: markers,
@@ -212,11 +216,13 @@ class _MapPageState extends State<MapPage> {
             child: FloatingActionButton(
               child: Icon(Icons.my_location),
               onPressed: () {
-                mapController.animateCamera(
-                  CameraUpdate.newLatLng(
-                    LatLng(currentPosition.latitude, currentPosition.longitude),
-                  ),
-                );
+                if (mapController != null) {
+                  mapController!.animateCamera(
+                    CameraUpdate.newLatLng(
+                      LatLng(currentPosition.latitude, currentPosition.longitude),
+                    ),
+                  );
+                }
               },
             ),
           ),

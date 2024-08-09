@@ -83,7 +83,6 @@ Future<List<String>> fetchBookmarkedPlaces(String email) async {
   }
 }
 
-
 Future<void> savePlace({
   required Map<String, dynamic> place,
 }) async {
@@ -104,7 +103,8 @@ Future<void> savePlace({
       'title': place['title'],
       'photo_url': place['photo_url'],
       'distance': place['distance'],
-      'bookmarked': true
+      'bookmarked': true,
+      'visited': false
     }),
   );
 
@@ -128,44 +128,6 @@ Future<void> removeBookmarkedPlace({required Map<String, dynamic> place}) async 
 
   if (response.statusCode != 200) {
     throw Exception('Failed to remove bookmarked place');
-  }
-}
-
-Future<Map<String, dynamic>> fetchPlaceDetails(String placeID, double currentLatitude, double currentLongitude) async {
-  final String? email = await getUserEmail();
-  if (email == null) {
-    throw Exception('No user logged in');
-  }
-  var headers = {
-    'Content-Type': 'application/json',
-  };
-
-  // Create the request URL
-  var uri = Uri.parse('$baseUrl/place-details');
-  // Create the request body
-  var requestBody = json.encode({
-    "email": email,
-    "placeId": placeID,
-    "latitude": currentLatitude,
-    "longitude": currentLongitude,
-  });
-
-  var request = http.Request('POST', uri)
-    ..body = requestBody
-    ..headers.addAll(headers);
-
-  // Send the request and get the streamed response
-  http.StreamedResponse response = await request.send();
-  List<String> bookmarkedPlaceIds = [];
-  bookmarkedPlaceIds = await fetchBookmarkedPlaces(email);
-
-  if (response.statusCode == 200) {
-    var responseBody = await response.stream.bytesToString();
-    var place = jsonDecode(responseBody)['data'];
-    place['bookmarked'] = bookmarkedPlaceIds.contains(place['place_id']);
-    return place;
-  } else {
-    throw Exception('Failed to fetch place details');
   }
 }
 
@@ -194,5 +156,81 @@ Future<List<Map<String, dynamic>>> searchPointOfInterest(String query, double la
     return data.cast<Map<String, dynamic>>();
   } else {
     throw Exception('Failed to load search results');
+  }
+}
+
+Future<Map<String, dynamic>> fetchPlaceDetails(
+    String placeID, double currentLatitude, double currentLongitude) async {
+
+  final String? email = await getUserEmail();
+  if (email == null) {
+    throw Exception('No user logged in');
+  }
+
+  var headers = {
+    'Content-Type': 'application/json',
+  };
+
+  // Create the request URL
+  var uri = Uri.parse('$baseUrl/place-details');
+  // Create the request body
+  var requestBody = json.encode({
+    "email": email,
+    "placeId": placeID,
+    "latitude": currentLatitude,
+    "longitude": currentLongitude,
+  });
+
+  var request = http.Request('POST', uri)
+    ..body = requestBody
+    ..headers.addAll(headers);
+
+  // Send the request and get the streamed response
+  http.StreamedResponse response = await request.send();
+
+  // Fetch bookmarked places with full details
+  Map<String, dynamic> bookmarkedPlaces = await fetchDetailedBookmarkedPlaces(email);
+
+  if (response.statusCode == 200) {
+    var responseBody = await response.stream.bytesToString();
+    var place = jsonDecode(responseBody)['data'];
+
+    // Set the bookmarked and visited status based on bookmarked places
+    if (bookmarkedPlaces.containsKey(placeID)) {
+      place['bookmarked'] = true;
+      place['visited'] = bookmarkedPlaces[placeID]['visited'];
+    } else {
+      place['bookmarked'] = false;
+      place['visited'] = false;
+    }
+
+    return place;
+  } else {
+    throw Exception('Failed to fetch place details');
+  }
+}
+
+Future<Map<String, dynamic>> fetchDetailedBookmarkedPlaces(String email) async {
+  final url = Uri.parse('$baseUrl/get-bookmarked-places?email=$email');
+  final response = await http.post(
+    url,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    var data = jsonDecode(response.body);
+    if (data['success'] == true) {
+      Map<String, dynamic> bookmarkedPlaces = {};
+      for (var place in data['data']) {
+        bookmarkedPlaces[place['place_id']] = place;
+      }
+      return bookmarkedPlaces;
+    } else {
+      throw Exception('Failed to fetch bookmarked places: ${data['message']}');
+    }
+  } else {
+    throw Exception('Failed to fetch bookmarked places');
   }
 }

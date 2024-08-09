@@ -24,7 +24,7 @@ Future<void> navigateUser(BuildContext context, User user) async {
       bool onboardingStep4 = userData?['onboarding_step4'] ?? false;
       bool onboardingCompleted = userData?['onboardingCompleted'] ?? false;
 
-      print("User data: $userData");
+      //print("User data: $userData");
 
       if (!accessLocationAllowed) {
         Navigator.pushReplacement(

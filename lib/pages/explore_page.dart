@@ -47,12 +47,12 @@ class _ExplorePageState extends State<ExplorePage> {
 
       // Fetch nearby attractions based on user location
       _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      final weather = temperature; // Use temperature as a proxy for weather
+      final weather = temperature;
       recommendedPlaces = await fetchNearbyAttractions(
         _currentPosition!.latitude,
         _currentPosition!.longitude,
         25,
-        weather,
+        weather
       );
 
     } catch (e) {
@@ -83,24 +83,24 @@ class _ExplorePageState extends State<ExplorePage> {
         position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       }
 
-      //print('Current position: ${position.latitude}, ${position.longitude}'); // Print current location
+      print("Position: ${position.latitude}, ${position.longitude}");
+
       List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
       final Placemark placemark = placemarks[0];
-      final city = placemark.locality ?? '';
-      final state = placemark.administrativeArea ?? '';
-
+      final city = placemark.locality;
+      final state = placemark.administrativeArea;
       final weatherData = await _locationService.fetchWeatherData(position.latitude, position.longitude);
-
       if (!mounted) return false;
+
       setState(() {
-        cityState = '$city, $state';
-        weatherIcon = weatherData['icon'];
-        temperature = weatherData['temperature'];
+        cityState = '${city ?? 'Unknown city'}, ${state ?? 'Unknown state'}';
+        weatherIcon = weatherData['icon'] ?? '';
+        temperature = weatherData['temperature'] ?? 'Unknown';
       });
 
       return true;
     } catch (e) {
-      print('Failed to fetch location: $e');
+      print('Failed to fetch location or weather: $e');
       return false;
     }
   }
@@ -121,34 +121,26 @@ class _ExplorePageState extends State<ExplorePage> {
 
     setState(() {
       isLoading = true;
+      locationError = false;
     });
 
     try {
-      List<Location> locations = await locationFromAddress(searchController.text);
-      /*if (locations.isNotEmpty) {
-        final location = locations[0];
-        final latitude = location.latitude;
-        final longitude = location.longitude;
-        // Update the header with the location and weather of the search query
-        await _updateLocationAndWeather(latitude: latitude, longitude: longitude);
-        recommendedPlaces = await searchPointOfInterest(
-          searchController.text,
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
-          25,
-          temperature,
-        );
-      } else {*/
-        recommendedPlaces = await searchPointOfInterest(
-          searchController.text,
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
-          25,
-          temperature,
-        );
-      //}
+      String query = searchController.text.trim();
+      print("Search query: $query");
+
+      // Perform the search with the current location and weather
+      recommendedPlaces = await searchPointOfInterest(
+        query,
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        25,  // You can adjust the radius if needed
+        temperature, // Use the current temperature for the search
+      );
     } catch (e) {
       print('Failed to search places: $e');
+      setState(() {
+        locationError = true;
+      });
     } finally {
       if (!mounted) return;
       setState(() {
@@ -156,6 +148,7 @@ class _ExplorePageState extends State<ExplorePage> {
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

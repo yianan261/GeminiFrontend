@@ -68,7 +68,7 @@ Future<bool> updateUser(Map<String, dynamic> data) async {
   }
 
   String userId = currentUser.email!; // Using email as UID
-
+  data['email'] = userId;
   try {
     final response = await http.post(
       Uri.parse('$baseUrl/updateUser?user_id=$userId'),
