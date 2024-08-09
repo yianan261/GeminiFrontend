@@ -7,6 +7,7 @@ import '/components/places_grid.dart';
 import 'package:geocoding/geocoding.dart';
 import '/services/location_service.dart';
 
+
 class ExplorePage extends StatefulWidget {
   @override
   _ExplorePageState createState() => _ExplorePageState();
@@ -93,6 +94,9 @@ class _ExplorePageState extends State<ExplorePage> {
         weatherIcon = weatherData['icon'];
         temperature = weatherData['temperature'];
       });
+
+
+
 
       return true;
     } catch (e) {

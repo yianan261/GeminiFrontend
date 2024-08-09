@@ -49,6 +49,8 @@ class PermissionsService {
       final fCMToken = await _firebaseMessaging.getToken();
       //print('Token: $fCMToken');
 
+
+
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final response = await http.post(
