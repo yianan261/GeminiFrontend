@@ -100,7 +100,7 @@ class _PlaceCardState extends State<PlaceCard> {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 widget.place['title'] ?? 'No Name',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 //overflow: TextOverflow.ellipsis,
               ),
             ),

@@ -34,22 +34,6 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (context) => ProfilePage());
           case '/settings':
             return MaterialPageRoute(builder: (context) => SettingsPage());
-          case '/places_to_visit':
-            final places = settings.arguments as List<Map<String, dynamic>>;
-            return MaterialPageRoute(
-              builder: (context) => PlacesList(
-                places: places,
-                title: 'Places to Visit',
-              ),
-            );
-          case '/places_visited':
-            final places = settings.arguments as List<Map<String, dynamic>>;
-            return MaterialPageRoute(
-              builder: (context) => PlacesList(
-                places: places,
-                title: 'Places Visited',
-              ),
-            );
           default:
             return MaterialPageRoute(builder: (context) => AuthPage());
         }

@@ -16,7 +16,7 @@ class OnboardingStep4 extends StatefulWidget {
 }
 
 class _OnboardingStep4State extends State<OnboardingStep4> {
-  static List<Interests> interests = [
+  static List<Interests> predefinedInterests = [
     Interests(title: 'Architecture', imagePath: 'assets/images/architecture.png'),
     Interests(title: 'Art & Culture', imagePath: 'assets/images/art.png'),
     Interests(title: 'Food, Drink & Fun', imagePath: 'assets/images/food.png'),
@@ -25,6 +25,7 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
     Interests(title: 'Cool & Unique', imagePath: 'assets/images/unique.png'),
   ];
 
+  List<Interests> allInterests = [];
   List<String> _selectedInterests = [];
   bool isLoading = true;
   String? errorMessage;
@@ -41,6 +42,15 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
       setState(() {
         if (responseData.isNotEmpty) {
           _selectedInterests = List<String>.from(responseData['interests'] ?? []);
+          allInterests = [...predefinedInterests];
+
+          // Add any additional interests that are not in the predefined list
+          for (var interest in _selectedInterests) {
+            if (!allInterests.any((item) => item.title == interest)) {
+              allInterests.add(Interests(title: interest, imagePath: 'assets/images/default.png', isOriginal: false));
+            }
+          }
+
           isLoading = false;
         } else {
           errorMessage = 'Error fetching user info';
@@ -72,7 +82,8 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
       );
     } else if (interestTitle.isNotEmpty) {
       setState(() {
-        interests.add(Interests(title: interestTitle, imagePath: 'assets/images/default.png', isOriginal: false));
+        Interests newInterest = Interests(title: interestTitle, imagePath: 'assets/images/default.png', isOriginal: false);
+        allInterests.add(newInterest);
         _selectedInterests.add(interestTitle);
       });
     }
@@ -81,23 +92,21 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
   void _deleteInterest(String interestTitle) {
     setState(() {
       _selectedInterests.remove(interestTitle);
-      interests.removeWhere((interest) => interest.title == interestTitle && !interest.isOriginal);
+      allInterests.removeWhere((interest) => interest.title == interestTitle && !interest.isOriginal);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        navigateTo: const OnboardingStep3(),
-      ),
+      appBar: CustomAppBar(),
       body: Center(
         child: isLoading
             ? CircularProgressIndicator()
             : errorMessage != null
             ? Text(errorMessage!)
             : Padding(
-          padding: const EdgeInsets.fromLTRB(50.0, 16.0, 50.0, 16.0), // Adjust the top padding
+          padding: const EdgeInsets.fromLTRB(50.0, 16.0, 50.0, 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -111,7 +120,7 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
               SizedBox(height: 15),
               Flexible(
                 child: InterestList(
-                  items: interests,
+                  items: allInterests, // Use the combined list
                   selectedInterests: _selectedInterests,
                   onInterestToggle: _toggleInterest,
                   onInterestDelete: _deleteInterest,
@@ -126,12 +135,12 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
                 width: double.infinity,
                 child: MyButton(
                   text: "submit",
-                  onTap: () => {
+                  onTap: () {
                     updateOnboardingStep4(
                       context,
                       _selectedInterests,
                       "",
-                    )
+                    );
                   },
                 ),
               ),

@@ -34,8 +34,8 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
     try {
       _currentPosition = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
-      final details = await fetchPlaceDetails(widget.placeId,
-          _currentPosition!.latitude, _currentPosition!.longitude);
+      final details = await fetchPlaceDetails(
+          widget.placeId, _currentPosition!.latitude, _currentPosition!.longitude);
       setState(() {
         placeDetails = details;
         isLoading = false;
@@ -56,7 +56,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
         final String placeId = widget.placeId;
 
         // Fetch the current bookmarked_places data
-        final userData = await getUser();  // Fetch current user data
+        final userData = await getUser(); // Fetch current user data
         Map<String, dynamic> bookmarkedPlaces = userData['bookmarked_places'];
 
         // Toggle the visited field for the specific placeId
@@ -73,7 +73,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
         if (success) {
           setState(() {
             isVisited = !isVisited;
-            placeDetails!['visited'] = isVisited;// Toggle the UI state for visited
+            placeDetails!['visited'] = isVisited; // Toggle the UI state for visited
           });
         } else {
           print('Failed to update user with visited place.');
@@ -154,168 +154,227 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
           ? Center(child: Text('No data found'))
           : SingleChildScrollView(
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (placeDetails!['photo_url'] != null &&
-                  placeDetails!['photo_url'].isNotEmpty)
-                SizedBox(
-                  height: 200,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: placeDetails!['photo_url'].length,
-                    itemBuilder: (context, index) {
-                      return Stack(
-                        children: [
-                          Container(
-                            width:
-                            MediaQuery.of(context).size.width,
-                            child: Image.network(
-                              placeDetails!['photo_url'][index],
-                              width: MediaQuery.of(context)
-                                  .size
-                                  .width,
-                              fit: BoxFit.cover,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (placeDetails!['photo_url'] != null &&
+                placeDetails!['photo_url'].isNotEmpty)
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: placeDetails!['photo_url'].length,
+                  itemBuilder: (context, index) {
+                    return Stack(
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.width,
+                          child: Image.network(
+                            placeDetails!['photo_url'][index],
+                            width: MediaQuery.of(context).size.width,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 2.0, horizontal: 8.0),
+                            color: Colors.black54,
+                            child: Text(
+                              '${index + 1}/${placeDetails!['photo_url'].length}',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14),
                             ),
                           ),
-                          Positioned(
-                            bottom: 8,
-                            right: 8,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 2.0, horizontal: 8.0),
-                              color: Colors.black54,
-                              child: Text(
-                                '${index + 1}/${placeDetails!['photo_url'].length}',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  placeDetails!['title'] ?? 'No Name',
-                  style: TextStyle(
-                      fontSize: 25, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(children: [
-                    Text(
-                      placeDetails!['editorial_summary'] ?? '',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    SizedBox(height: 10.0),
-                    Divider(color: Colors.grey[300]),
-                  ])),
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Location',
-                          style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(placeDetails!['address'] ??
-                            'No Address'),
-                        TextButton.icon(
-                          onPressed: () async {
-                            final String googleMapsUrl =
-                                "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(placeDetails!['address'] ?? '')}";
-                            if (await canLaunch(googleMapsUrl)) {
-                              await launch(googleMapsUrl);
-                            } else {
-                              throw 'Could not open the map.';
-                            }
-                          },
-                          icon: Icon(Icons.directions,
-                              color: Colors.blue),
-                          label: Text(
-                            'Get Directions',
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size(50, 30),
-                            alignment: Alignment.centerLeft,
-                          ),
-                        ),
-                        SizedBox(height: 10.0),
-                        Divider(color: Colors.grey[300]),
-                      ])),
-              Padding(
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                placeDetails!['title'] ?? 'No Name',
+                style: TextStyle(
+                    fontSize: 25, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(children: [
+                  Text(
+                    placeDetails!['editorial_summary'] ?? '',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  SizedBox(height: 10.0),
+                  Divider(color: Colors.grey[300]),
+                ])),
+            Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Interesting Facts',
+                        'Location',
                         style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold),
-                      ), // Horizontal line
-                      Text(
-                        placeDetails!['interesting_facts'] ??
-                            'No interesting facts available',
-                        style: TextStyle(fontSize: 16),
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(placeDetails!['address'] ?? 'No Address'),
+                      TextButton.icon(
+                        onPressed: () async {
+                          final String googleMapsUrl =
+                              "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(placeDetails!['address'] ?? '')}";
+                          if (await canLaunch(googleMapsUrl)) {
+                            await launch(googleMapsUrl);
+                          } else {
+                            throw 'Could not open the map.';
+                          }
+                        },
+                        icon: Icon(Icons.directions,
+                            color: Colors.blue),
+                        label: Text(
+                          'Get Directions',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size(50, 30),
+                          alignment: Alignment.centerLeft,
+                        ),
                       ),
                       SizedBox(height: 10.0),
                       Divider(color: Colors.grey[300]),
-                    ]),
-              ),
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Reviews',
-                        style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      ...placeDetails!['reviews']
-                          ?.map<Widget>((review) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                review['author_name'] ??
-                                    'Anonymous',
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight:
-                                    FontWeight.bold),
-                              ),
-                              Text(
-                                review['text'] ?? '',
-                                style:
-                                TextStyle(fontSize: 16),
-                              ),
-                            ],
+                    ])),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Interesting Facts',
+                      style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 15),
+                    // Add space between title and Gemini text
+                    Align(
+                      alignment: Alignment.centerLeft, // Align to the left
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) =>
+                                LinearGradient(
+                                  colors: [Colors.blue, Colors.purple],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ).createShader(bounds),
+                            child: Icon(Icons.auto_awesome,
+                                color: Colors.white, size: 16),
                           ),
-                        );
-                      })?.toList() ??
-                          [],
-                    ],
-                  ))
-            ]),
+                          SizedBox(width: 5),
+                          Text(
+                            'Generated with Gemini',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      placeDetails!['interesting_facts'] ??
+                          'No interesting facts available',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 10.0),
+                    Divider(color: Colors.grey[300]),
+                  ]),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Reviews',
+                    style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (placeDetails!['rating'] != null) ...[
+                    SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Text(
+                          placeDetails!['rating'].toString(),
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(width: 5),
+                        _buildRatingStars(
+                            placeDetails!['rating']),
+                        SizedBox(width: 5),
+                      ],
+                    ),
+                  ],
+                  ...placeDetails!['reviews']
+                      ?.map<Widget>((review) {
+                    return Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            review['author_name'] ?? 'Anonymous',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            review['text'] ?? '',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList() ??
+                      [],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildRatingStars(double rating) {
+    int fullStars = rating.floor(); // Full stars
+    bool hasHalfStar = rating - fullStars > 0; // Check for half star
+
+    return Row(
+      children: [
+        ...List.generate(fullStars, (index) =>
+            Icon(Icons.star, color: Colors.orange, size: 20)),
+        if (hasHalfStar) Icon(Icons.star_half, color: Colors.orange, size: 20),
+        ...List.generate(5 - fullStars - (hasHalfStar ? 1 : 0),
+                (index) => Icon(Icons.star_border, color: Colors.orange, size: 20)),
+      ],
     );
   }
 }

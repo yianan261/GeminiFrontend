@@ -16,6 +16,9 @@ class _ExplorePageState extends State<ExplorePage> {
   String weatherIcon = '';
   String temperature = '';
   String greeting = '';
+  String queryLocationWeather = '';
+  String queryCityState = '';
+  bool isQueryLocation = false;
   List<Map<String, dynamic>> recommendedPlaces = [];
   bool isLoading = false;
   bool locationError = false;
@@ -45,14 +48,13 @@ class _ExplorePageState extends State<ExplorePage> {
       }
       _setGreeting();
 
-      // Fetch nearby attractions based on user location
       _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       final weather = temperature;
       recommendedPlaces = await fetchNearbyAttractions(
         _currentPosition!.latitude,
         _currentPosition!.longitude,
         25,
-        weather
+        weather,
       );
 
     } catch (e) {
@@ -82,8 +84,6 @@ class _ExplorePageState extends State<ExplorePage> {
       } else {
         position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       }
-
-      print("Position: ${position.latitude}, ${position.longitude}");
 
       List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
       final Placemark placemark = placemarks[0];
@@ -128,14 +128,18 @@ class _ExplorePageState extends State<ExplorePage> {
       String query = searchController.text.trim();
       print("Search query: $query");
 
-      // Perform the search with the current location and weather
       recommendedPlaces = await searchPointOfInterest(
         query,
         _currentPosition!.latitude,
         _currentPosition!.longitude,
-        25,  // You can adjust the radius if needed
+        25,
         temperature, // Use the current temperature for the search
       );
+
+      if (recommendedPlaces.isNotEmpty) {
+        String firstAddress = recommendedPlaces[0]['address'];
+        await _updateLocationAndWeatherForQuery(firstAddress);
+      }
     } catch (e) {
       print('Failed to search places: $e');
       setState(() {
@@ -149,6 +153,42 @@ class _ExplorePageState extends State<ExplorePage> {
     }
   }
 
+  Future<void> _updateLocationAndWeatherForQuery(String address) async {
+    try {
+      // Attempt to geocode the address to get location details
+      List<Location> locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        final queryLocation = locations.first;
+        List<Placemark> placemarks = await placemarkFromCoordinates(queryLocation.latitude, queryLocation.longitude);
+        final Placemark placemark = placemarks[0];
+        final city = placemark.locality;
+        final state = placemark.administrativeArea;
+
+        final queryWeatherData = await _locationService.fetchWeatherData(queryLocation.latitude, queryLocation.longitude);
+        print(queryWeatherData);
+        if (queryWeatherData != null) {
+          setState(() {
+            isQueryLocation = true;
+            queryCityState = '${city ?? 'Unknown city'}, ${state ?? 'Unknown state'}';
+            queryLocationWeather = '${queryWeatherData['icon']} ${queryWeatherData['temperature']}°F';
+          });
+        } else {
+          setState(() {
+            isQueryLocation = false;
+          });
+        }
+      } else {
+        setState(() {
+          isQueryLocation = false;
+        });
+      }
+    } catch (e) {
+      print('Failed to identify the location: $e');
+      setState(() {
+        isQueryLocation = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,24 +205,36 @@ class _ExplorePageState extends State<ExplorePage> {
             children: [
               MySearchBar(
                 controller: searchController,
-                onSearch: _searchPlaces,
+                onSearch: _searchPlaces, // Triggers search and updates location/weather
               ),
               SizedBox(height: 20),
-              Text(
-                '$cityState',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              if (!isQueryLocation) ...[
+                Text(
+                  '$cityState',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text('$weatherIcon $temperature°F', style: TextStyle(fontSize: 16)),
-              SizedBox(height: 40),
+                Text('$weatherIcon $temperature°F', style: TextStyle(fontSize: 16)),
+              ] else ...[
+                Text(
+                  '$queryCityState',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text('$queryLocationWeather', style: TextStyle(fontSize: 16)),
+              ],
+              SizedBox(height: 30),
               Text(
                 '$greeting! Here are some places you might enjoy!',
                 style: TextStyle(
                   fontSize: 18,
                 ),
               ),
+              SizedBox(height: 8),
               _currentPosition != null
                   ? PlacesGrid(
                 recommendedPlaces: recommendedPlaces,

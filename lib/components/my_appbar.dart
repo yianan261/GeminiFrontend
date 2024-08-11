@@ -3,18 +3,22 @@ import '/components/icon_button.dart';
 import '/services/sign_out.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final Widget navigateTo;
+  final Widget? navigateTo;
 
   const CustomAppBar({
     Key? key,
-    required this.navigateTo,
+    this.navigateTo, // Make navigateTo optional
   }) : super(key: key);
 
   void navigateBack(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => navigateTo),
-    );
+    if (navigateTo != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => navigateTo!),
+      );
+    } else {
+      Navigator.pop(context); // Just pop the current page
+    }
   }
 
   @override
