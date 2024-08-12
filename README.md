@@ -1,8 +1,7 @@
 # Wander Finds
 
-An AI-powered personalized tour guide to help you discover hidden gems.
+An AI-powered personalized guide to help you discover hidden gems.
 
-Wander Finds is your personal AI tour guide that generates personalized recommendations based on your Google Maps data and interests. Once you provide Wander Finds with your preferences and Google Takeout uploads, it generates a profile description that you can update. When generating recommendations, Wander Finds takes into account your interests, profile, search queries, and even weather factors to tailor results to you. The top 12 results are chosen by Gemini to help narrow down your options. Wander Finds also acts as a personal AI tour guide, allowing you to easily look up a place’s context and information with a click. Our mobile app, developed with Flutter and Firebase, is available on both Android and iOS devices. Wander Finds is built with inclusivity, simplicity, and security in mind.
 
 ## Table of Contents
 
@@ -15,7 +14,8 @@ Wander Finds is your personal AI tour guide that generates personalized recommen
 
 ## Introduction
 
-Wander Finds is an AI-powered personalized tour guide designed to help you discover hidden gems in your area. By leveraging your location and Google Takeout data, the app offers tailored recommendations that align with your interests and past activities.
+Wander Finds is your personal AI guide that generates personalized recommendations based on your Google Maps data and interests. Once you provide Wander Finds with your preferences and Google Takeout uploads, it generates a profile description that you can update. When generating recommendations, Wander Finds takes into account your interests, profile, search queries, and even weather factors to tailor results to you. The top 12 results are chosen by Gemini to help narrow down your options. Wander Finds also acts as a personal AI tour guide, allowing you to easily look up a place’s context and information with a click. Our mobile app, developed with Flutter and Firebase, is available on both Android and iOS devices. Wander Finds is built with inclusivity, simplicity, and security in mind.
+
 
 ## Getting Started
 
