@@ -25,7 +25,6 @@ This project is built using the Flutter framework. Follow the instructions below
 
    ```bash
    git clone https://github.com/yianan261/GeminiFrontend.git
-   cd wander-finds
    ```
    
 2. **Install Dependencies**: Ensure you have Flutter installed on your machine. Run the following command to install all required dependencies.
