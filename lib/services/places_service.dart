@@ -156,7 +156,7 @@ Future<List<Map<String, dynamic>>> searchPointOfInterest(String query, double la
       'latitude': latitude,
       'longitude': longitude,
       'radius': radius,
-      'weather': weather
+      'weather': weather,
     }),
   );
 

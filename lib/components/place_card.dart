@@ -110,6 +110,9 @@ class _PlaceCardState extends State<PlaceCard> {
                 '${widget.place['distance'].toStringAsFixed(2)} mi',
                 style: TextStyle(fontSize: 12, color: Colors.blueGrey),
               ),
+              // icon : Icon(
+              //   widget.place[""]
+              // )
             ),
           ],
         ),

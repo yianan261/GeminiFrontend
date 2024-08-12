@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'explore_page.dart';
 import 'map_page.dart';
 import 'profile_page.dart';
-
 import 'package:workmanager/workmanager.dart';
 
 class HomePage extends StatefulWidget {

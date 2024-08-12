@@ -5,6 +5,15 @@ import '/components/search_bar.dart';
 import '/components/places_grid.dart';
 import 'package:geocoding/geocoding.dart';
 import '/services/location_service.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:workmanager/workmanager.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '/services/location_service.dart';
+import 'package:wander_finds_gemini/services/places_service.dart';
+
+
 
 class ExplorePage extends StatefulWidget {
   @override
@@ -25,6 +34,8 @@ class _ExplorePageState extends State<ExplorePage> {
   TextEditingController searchController = TextEditingController();
   final LocationService _locationService = LocationService();
   Position? _currentPosition;
+  bool isWheelchairAccessible = false;
+
 
   @override
   void initState() {
@@ -54,8 +65,36 @@ class _ExplorePageState extends State<ExplorePage> {
         _currentPosition!.latitude,
         _currentPosition!.longitude,
         25,
-        weather,
+        weather
+
       );
+
+      // Map<String, dynamic> place_notification;
+      //
+      // place_notification = await fetchPlaceDetails(
+      //   "ChIJydZJAtkYgYARX6CyfIWNQ_s",
+      //   _currentPosition!.latitude,
+      //   _currentPosition!.longitude,
+      //   // 25,
+      //   // weatherData['temperature'],
+      // );
+      // final place = place_notification;
+      // final title = place['title'] ?? 'No Name';
+      // final address = place['address'] ?? 'No Address';
+      // final photo_url = place['photo_url'][0];
+      //
+      //
+      //
+      //
+      // AwesomeNotifications().createNotification(
+      //     content: NotificationContent(
+      //         id: 10,
+      //         channelKey: 'basic_channel',
+      //         title: "Do you want to explore " + title + " ?",
+      //         body: address,
+      //         notificationLayout: NotificationLayout.BigPicture,
+      //         bigPicture: photo_url
+      //     ));
 
     } catch (e) {
       print('Failed to initialize page: $e');
@@ -133,7 +172,9 @@ class _ExplorePageState extends State<ExplorePage> {
         _currentPosition!.latitude,
         _currentPosition!.longitude,
         25,
-        temperature, // Use the current temperature for the search
+        temperature,
+          // isWheelchairAccessible
+// Use the current temperature for the search
       );
 
       if (recommendedPlaces.isNotEmpty) {
@@ -190,6 +231,14 @@ class _ExplorePageState extends State<ExplorePage> {
     }
   }
 
+  List<Map<String, dynamic>> getFilteredPlaces() {
+    if (isWheelchairAccessible) {
+      return recommendedPlaces.where((place) => place['wheelchairAccessible'] == true).toList();
+    }
+    return recommendedPlaces;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,10 +283,46 @@ class _ExplorePageState extends State<ExplorePage> {
                   fontSize: 18,
                 ),
               ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isWheelchairAccessible = !isWheelchairAccessible;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isWheelchairAccessible ? Colors.indigo.shade800 : Colors.transparent,
+                        border: Border.all(color: Colors.black), // Add black border here
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.accessible,
+                            color: isWheelchairAccessible ? Colors.white : Colors.black,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Wheelchair Accessible',
+                            style: TextStyle(
+                              color: isWheelchairAccessible ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               SizedBox(height: 8),
               _currentPosition != null
                   ? PlacesGrid(
-                recommendedPlaces: recommendedPlaces,
+                recommendedPlaces: getFilteredPlaces(),
               )
                   : Center(child: Text("Unable to fetch your current location.")),
             ],

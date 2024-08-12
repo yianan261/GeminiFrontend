@@ -211,8 +211,8 @@ class _MapPageState extends State<MapPage> {
               ),
             ),
           Positioned(
-            bottom: 16,
-            right: 16,
+            bottom: 100,
+            right: 9,
             child: FloatingActionButton(
               child: Icon(Icons.my_location),
               onPressed: () {
