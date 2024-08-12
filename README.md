@@ -11,7 +11,9 @@ An AI-powered personalized guide to help you discover hidden gems.
 - [Android Studio Setup](#android-studio-setup)
 - [Location Services](#location-services)
 - [Google Takeout Data](#google-takeout-data)
+- [Backend Details](#back-end)
 - [Team Members](#Team-Members)
+
 
 ## Introduction
 
@@ -54,6 +56,9 @@ To provide you with the best possible recommendations based on your current loca
 ## Google Takeout Data
 
 We're working to customize your recommended places using your Google Takeout data. By sharing this data, we can generate suggestions that are more accurately tailored to your preferences and interests. To learn more about Google Takeout and how to export your data, visit the [Google Takeout website](https://support.google.com/accounts/answer/3024190?hl=en).
+
+## Back end
+https://github.com/yianan261/GeminiCompetition_Backend
 
 ## Team Members
 1. Lana Phuong
