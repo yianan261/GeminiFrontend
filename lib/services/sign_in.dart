@@ -4,7 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../pages/navigation_utils.dart';
 import '../pages/home.dart';
-import 'user_service.dart'; // Import the user_service file
+import 'user_service.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn(
@@ -15,6 +15,7 @@ final GoogleSignIn googleSignIn = GoogleSignIn(
 );
 
 final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
 
 Future<Map<String, dynamic>?> signInWithGoogle() async {
   try {
@@ -50,7 +51,7 @@ Future<Map<String, dynamic>?> signInWithGoogle() async {
             'onboarding_step3': false,
             'onboarding_step4': false,
             'onboardingCompleted': false,
-            'interests': [], // Corrected field name
+            'interests': [],
           });
 
           if (userData != null) {

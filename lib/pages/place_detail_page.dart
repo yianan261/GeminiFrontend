@@ -326,7 +326,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                         ),
                         SizedBox(width: 5),
                         _buildRatingStars(
-                            placeDetails!['rating']),
+                            (placeDetails!['rating'] as num).toDouble()),
                         SizedBox(width: 5),
                       ],
                     ),

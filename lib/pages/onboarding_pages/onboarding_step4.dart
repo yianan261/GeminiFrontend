@@ -99,7 +99,8 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(),
+      appBar: CustomAppBar(
+      ),
       body: Center(
         child: isLoading
             ? CircularProgressIndicator()
@@ -118,14 +119,19 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
                 ),
               ),
               SizedBox(height: 15),
-              Flexible(
-                child: InterestList(
-                  items: allInterests, // Use the combined list
-                  selectedInterests: _selectedInterests,
-                  onInterestToggle: _toggleInterest,
-                  onInterestDelete: _deleteInterest,
+              Expanded( // Use Expanded to make the list take up available space and be scrollable
+                child: ListView(
+                  children: [
+                    InterestList(
+                      items: allInterests, // Use the combined list
+                      selectedInterests: _selectedInterests,
+                      onInterestToggle: _toggleInterest,
+                      onInterestDelete: _deleteInterest,
+                    ),
+                  ],
                 ),
               ),
+              SizedBox(height: 20),
               AddableTextField(
                 onAdd: _addInterest,
                 hintText: "Add your other interests...",
@@ -134,7 +140,7 @@ class _OnboardingStep4State extends State<OnboardingStep4> {
               SizedBox(
                 width: double.infinity,
                 child: MyButton(
-                  text: "submit",
+                  text: "Submit",
                   onTap: () {
                     updateOnboardingStep4(
                       context,

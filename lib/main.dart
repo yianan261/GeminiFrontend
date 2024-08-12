@@ -28,16 +28,6 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const AuthPage(),
-      onGenerateRoute: (RouteSettings settings) {
-        switch (settings.name) {
-          case '/profile':
-            return MaterialPageRoute(builder: (context) => ProfilePage());
-          case '/settings':
-            return MaterialPageRoute(builder: (context) => SettingsPage());
-          default:
-            return MaterialPageRoute(builder: (context) => AuthPage());
-        }
-      },
       navigatorObservers: [
         AppNavigatorObserver(
           onReturn: () {

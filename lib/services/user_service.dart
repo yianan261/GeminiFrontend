@@ -38,17 +38,28 @@ Future<Map<String, dynamic>> getUser() async {
     return {};
   }
 
-  String userId = currentUser.email!; // Using email as UID
+  String userEmail = currentUser.email!;
+  final String url = '$baseUrl/users/$userEmail';
+
   try {
     final response = await http.post(
-      Uri.parse('$baseUrl/users/$userId'),
-      headers: <String, String>{
+      Uri.parse(url),
+      headers: {
         'Content-Type': 'application/json; charset=UTF-8',
       },
+      body: json.encode({
+        "email": userEmail,  // If your API expects email in the body
+      }),
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body)["data"];
+      final data = json.decode(response.body);
+      if (data['success']) {
+        return data['data'];
+      } else {
+        print('Failed to fetch user data: ${data['message']}');
+        return {};
+      }
     } else {
       print('Failed to fetch user data: ${response.statusCode}');
       return {};
