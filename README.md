@@ -1,16 +1,54 @@
-# wander_finds_gemini
+# Wander Finds
 
-A new Flutter project.
+An AI-powered personalized tour guide to help you discover hidden gems.
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Getting Started](#getting-started)
+- [How to Run the Application](#how-to-run-the-application)
+- [Android Studio Setup](#android-studio-setup)
+- [Location Services](#location-services)
+- [Google Takeout Data](#google-takeout-data)
+
+## introduction
+
+Wander Finds is an AI-powered personalized tour guide designed to help you discover hidden gems in your area. By leveraging your location and Google Takeout data, the app offers tailored recommendations that align with your interests and past activities.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This project is built using the Flutter framework. Follow the instructions below to set up the project on your local machine and get started.
 
-A few resources to get you started if this is your first Flutter project:
+## How to Run the Application
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+1. **Clone the Repository**: Start by cloning the project repository to your local machine using Git.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+   ```bash
+   git clone https://github.com/yianan261/GeminiFrontend.git
+   cd wander-finds
+   ```
+   
+2. **Install Dependencies**: Ensure you have Flutter installed on your machine. Run the following command to install all required dependencies.
+   ```bash
+    flutter pub get
+   ```
+3. Run the Application: After setting up your environment (see the Android Studio Setup section below), you can run the application using the following command:
+   ```bash
+     flutter run
+   ```
+Alternatively, you can run the app directly from Android Studio by selecting the target device and clicking the Run button.
+
+## Android Studio Setup
+
+1. Install Android Studio: Download and install Android Studio.
+2. Configure Flutter with Android Studio: Open Android Studio and go to File > Settings > Plugins. Search for 'Flutter' and 'Dart' plugins and install them.
+3. Set Up Android Emulator: Go to AVD Manager in Android Studio, create a new virtual device, and select your preferred configuration.
+4. Connect a Physical Device (Optional): If you prefer testing on a physical Android device, ensure USB debugging is enabled on your device, and then connect it to your computer. Run the same flutter run command, and the app will launch on your device.
+
+## Location Services
+
+To provide you with the best possible recommendations based on your current location, we kindly ask you to enable location services on your device. This will allow the app to suggest places nearby.
+
+## Google Takeout Data
+
+We're working to customize your recommended places using your Google Takeout data. By sharing this data, we can generate suggestions that are more accurately tailored to your preferences and interests. To learn more about Google Takeout and how to export your data, visit the [Google Takeout website](https://support.google.com/accounts/answer/3024190?hl=en).
