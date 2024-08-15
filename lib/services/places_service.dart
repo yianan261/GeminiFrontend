@@ -168,57 +168,6 @@ Future<List<Map<String, dynamic>>> searchPointOfInterest(String query, double la
   }
 }
 
-Future<Map<String, dynamic>> fetchPlaceDetails(
-    String placeID, double currentLatitude, double currentLongitude) async {
-
-  final String? email = await getUserEmail();
-  if (email == null) {
-    throw Exception('No user logged in');
-  }
-
-  var headers = {
-    'Content-Type': 'application/json',
-  };
-
-  // Create the request URL
-  var uri = Uri.parse('$baseUrl/place-details');
-  // Create the request body
-  var requestBody = json.encode({
-    "email": email,
-    "placeId": placeID,
-    "latitude": currentLatitude,
-    "longitude": currentLongitude,
-  });
-
-  var request = http.Request('POST', uri)
-    ..body = requestBody
-    ..headers.addAll(headers);
-
-  // Send the request and get the streamed response
-  http.StreamedResponse response = await request.send();
-
-  // Fetch bookmarked places with full details
-  Map<String, dynamic> bookmarkedPlaces = await fetchDetailedBookmarkedPlaces(email);
-
-  if (response.statusCode == 200) {
-    var responseBody = await response.stream.bytesToString();
-    var place = jsonDecode(responseBody)['data'];
-
-    // Set the bookmarked and visited status based on bookmarked places
-    if (bookmarkedPlaces.containsKey(placeID)) {
-      place['bookmarked'] = true;
-      place['visited'] = bookmarkedPlaces[placeID]['visited'];
-    } else {
-      place['bookmarked'] = false;
-      place['visited'] = false;
-    }
-
-    return place;
-  } else {
-    throw Exception('Failed to fetch place details');
-  }
-}
-
 Future<Map<String, dynamic>> fetchDetailedBookmarkedPlaces(String email) async {
   final url = Uri.parse('$baseUrl/get-bookmarked-places?email=$email');
   final response = await http.post(
@@ -243,3 +192,60 @@ Future<Map<String, dynamic>> fetchDetailedBookmarkedPlaces(String email) async {
     throw Exception('Failed to fetch bookmarked places');
   }
 }
+
+Future<Map<String, dynamic>> fetchPlaceDetails(
+    String placeID, double currentLatitude, double currentLongitude) async {
+
+  final String? email = await getUserEmail();
+  if (email == null) {
+    throw Exception('No user logged in');
+  }
+
+  var headers = {
+    'Content-Type': 'application/json',
+  };
+
+  var uri = Uri.parse('$baseUrl/place-details');
+  var requestBody = json.encode({
+    "email": email,
+    "placeId": placeID,
+    "latitude": currentLatitude,
+    "longitude": currentLongitude,
+  });
+
+  var request = http.Request('POST', uri)
+    ..body = requestBody
+    ..headers.addAll(headers);
+
+  try {
+    print('Sending request to $uri with body: $requestBody');
+    http.StreamedResponse response = await request.send();
+
+    print('Response status code: ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      var responseBody = await response.stream.bytesToString();
+      //print('Response body: $responseBody');
+      var place = jsonDecode(responseBody)['data'];
+
+      Map<String, dynamic> bookmarkedPlaces = await fetchDetailedBookmarkedPlaces(email);
+
+      if (bookmarkedPlaces.containsKey(placeID)) {
+        place['bookmarked'] = true;
+        place['visited'] = bookmarkedPlaces[placeID]['visited'];
+      } else {
+        place['bookmarked'] = false;
+        place['visited'] = false;
+      }
+
+      return place;
+    } else {
+      print('Failed to fetch place details with status code: ${response.statusCode}');
+      throw Exception('Failed to fetch place details');
+    }
+  } catch (e) {
+    print('Exception caught: $e');
+    throw Exception('Failed to send request: $e');
+  }
+}
+

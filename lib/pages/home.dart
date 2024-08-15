@@ -15,38 +15,28 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
+  // Persistent instances of the pages
+  final List<Widget> _pages = [
+    ExplorePage(),
+    MapPage(),
+    ProfilePage(),
+  ];
+
   @override
   void initState() {
     super.initState();
     Workmanager().registerPeriodicTask(
       "1", // Unique identifier for the task
       "locationTracking", // Task name
-      // frequency: Duration(seconds: 20), // Set the frequency to 1 hour
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Navigator(
-        key: GlobalKey<NavigatorState>(),
-        onGenerateRoute: (RouteSettings settings) {
-          Widget page;
-          switch (_currentIndex) {
-            case 0:
-              page = ExplorePage(); // Always return a new instance of ExplorePage
-              break;
-            case 1:
-              page = MapPage();
-              break;
-            case 2:
-              page = ProfilePage();
-              break;
-            default:
-              page = ExplorePage();
-          }
-          return MaterialPageRoute(builder: (_) => page);
-        },
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

@@ -36,6 +36,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
           desiredAccuracy: LocationAccuracy.high);
       final details = await fetchPlaceDetails(
           widget.placeId, _currentPosition!.latitude, _currentPosition!.longitude);
+      print(details);
       setState(() {
         placeDetails = details;
         isLoading = false;
