@@ -5,12 +5,12 @@ import '/pages/place_detail_page.dart';
 
 class PlaceCard extends StatefulWidget {
   final Map<String, dynamic> place;
-  //final Position currentPosition;
+  final ValueChanged<bool>? onBookmarkToggle;
 
   const PlaceCard({
     Key? key,
     required this.place,
-    //required this.currentPosition,
+    this.onBookmarkToggle,
   }) : super(key: key);
 
   @override
@@ -26,7 +26,6 @@ class _PlaceCardState extends State<PlaceCard> {
     isBookmarked = widget.place['bookmarked'] ?? false;
   }
 
-
   void _toggleBookmark() async {
     try {
       if (isBookmarked) {
@@ -34,7 +33,7 @@ class _PlaceCardState extends State<PlaceCard> {
       } else {
         await savePlace(place: widget.place);
       }
-
+      widget.onBookmarkToggle?.call(!isBookmarked);
       setState(() {
         isBookmarked = !isBookmarked;
         widget.place['bookmarked'] = isBookmarked;
@@ -48,7 +47,16 @@ class _PlaceCardState extends State<PlaceCard> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PlaceDetailPage(placeId: widget.place['place_id']),
+        builder: (context) => PlaceDetailPage(
+          placeId: widget.place['place_id'],
+          onBookmarkToggle: (isBookmarked) {
+            widget.onBookmarkToggle?.call(isBookmarked);
+            setState(() {
+              this.isBookmarked = isBookmarked;
+              widget.place['bookmarked'] = isBookmarked;
+            });
+          },
+        ),
       ),
     );
   }
@@ -68,7 +76,7 @@ class _PlaceCardState extends State<PlaceCard> {
                   child: widget.place['photo_url'][0] != null
                       ? Image.network(
                     widget.place['photo_url'][0],
-                    height: 150,
+                    height: 120,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   )
@@ -101,16 +109,18 @@ class _PlaceCardState extends State<PlaceCard> {
               child: Text(
                 widget.place['title'] ?? 'No Name',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                //overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
                 '${widget.place['distance'].toStringAsFixed(2)} mi',
                 style: TextStyle(fontSize: 12, color: Colors.blueGrey),
               ),
             ),
+            SizedBox(height: 8), // Add this to ensure there's padding at the bottom
           ],
         ),
       ),

@@ -52,11 +52,11 @@ Future<List<Map<String, dynamic>>> fetchNearbyAttractions(double latitude, doubl
       place['email'] = email;
       place['bookmarked'] = bookmarkedPlaceIds.contains(place['place_id']);
     }
-    print("places: $places");
+    //print("places: $places");
     return places;
   } else {
-    print('Request failed with status: ${response.statusCode}');
-    print('Reason: ${response.reasonPhrase}');
+    //print('Request failed with status: ${response.statusCode}');
+    //print('Reason: ${response.reasonPhrase}');
     throw Exception('Failed to load nearby attractions');
   }
 }
@@ -111,7 +111,7 @@ Future<void> savePlace({
 
   if (response.statusCode == 200) {
     place['bookmarked'] = true;
-    print('Place bookmarked successfully');
+    //print('Place bookmarked successfully');
   } else {
     throw Exception('Failed to save place');
   }

@@ -53,7 +53,10 @@ dependencies:
   image_picker: ^1.1.2
   firebase_storage: ^12.1.3
   url_launcher: ^6.3.0
-  workmanager: ^0.5.2
+  workmanager:
+    git:
+      url: https://github.com/absar/flutter_workmanager.git
+      ref: ios-bg-tasks-enh-final
   awesome_notifications_core: ^0.9.0 # <~ always ensure to use the latest version
   awesome_notifications: any # <~ this version is managed by awesome_notifications_core package
   shared_preferences: ^2.3.1

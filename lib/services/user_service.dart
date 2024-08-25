@@ -18,7 +18,7 @@ Future<Map<String, dynamic>?> createUser(Map<String, dynamic> data) async {
       return json.decode(response.body)["data"];
     } else if (response.statusCode == 409) {
       // Handle user already exists case
-      print('User already exists.');
+      //print('User already exists.');
       return null;
     } else {
       print('Failed to create user: ${response.body}');
@@ -34,7 +34,7 @@ Future<Map<String, dynamic>?> createUser(Map<String, dynamic> data) async {
 Future<Map<String, dynamic>> getUser() async {
   User? currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser == null) {
-    print('User not logged in');
+    //print('User not logged in');
     return {};
   }
 

@@ -1,38 +1,44 @@
 import 'package:flutter/material.dart';
-import 'place_card.dart';
+import '/components/place_card.dart';
 
 class PlacesGrid extends StatelessWidget {
   final List<Map<String, dynamic>> recommendedPlaces;
+  final Function(int, bool) onBookmarkToggle;
 
   const PlacesGrid({
     Key? key,
     required this.recommendedPlaces,
+    required this.onBookmarkToggle,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // The GridView
         GridView.builder(
-          padding: EdgeInsets.only(top: 30), // Add padding to push the grid down if needed
+          padding: EdgeInsets.only(top: 30),
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 2,
-            mainAxisSpacing: 2,
-            childAspectRatio: 3 / 4,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
           ),
-          itemCount: recommendedPlaces.length,
+          itemCount:
+              recommendedPlaces.isNotEmpty ? recommendedPlaces.length : 1,
           itemBuilder: (context, index) {
-            final place = recommendedPlaces[index];
+            if (recommendedPlaces.isEmpty) {
+              return Center(
+                child: Text('No recommended places available.'),
+              );
+            }
             return PlaceCard(
-              place: place,
+              place: recommendedPlaces[index],
+              onBookmarkToggle: (isBookmarked) =>
+                  onBookmarkToggle(index, isBookmarked),
             );
           },
         ),
-        // "Generated with Gemini" text aligned at the top right
         Positioned(
           top: 5,
           right: 10,

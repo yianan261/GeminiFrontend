@@ -8,7 +8,7 @@ import 'package:wander_finds_gemini/pages/settings.dart';
 import '/services/user_service.dart';
 import '/components/count_card.dart';
 import 'onboarding_pages/onboarding_step4.dart';
-import 'places_list_page.dart';// Import the InterestCard component
+import 'places_list_page.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -31,6 +31,13 @@ class ProfilePageState extends State<ProfilePage> {
     fetchUserData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Fetch user data whenever the ProfilePage is navigated back to
+    fetchUserData();
+  }
+
   Future<void> fetchUserData() async {
     user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -38,19 +45,17 @@ class ProfilePageState extends State<ProfilePage> {
       setState(() {
         userName = userData['displayName'] ?? '';
         photoUrl = userData['photoURL'] ?? '';
-        coverPhotoUrl =
-            userData['coverPhotoURL'] ?? 'assets/images/defaultcover.png';
-        bookmarkedPlaces = List<Map<String, dynamic>>.from(
-            userData['bookmarked_places'].values.toList() ?? []);
+        coverPhotoUrl = userData['coverPhotoURL'] ?? 'assets/images/defaultcover.png';
+        // Safely handle null values for bookmarked_places and interests
+        bookmarkedPlaces = userData['bookmarked_places'] != null
+            ? List<Map<String, dynamic>>.from(
+            userData['bookmarked_places'].values.toList())
+            : [];
         userInterests = List<String>.from(userData['interests'] ?? []);
 
         // Segregate the places based on 'visited' status
-        placesToVisit = bookmarkedPlaces
-            .where((place) => place['visited'] == false)
-            .toList();
-        placesVisited = bookmarkedPlaces
-            .where((place) => place['visited'] == true)
-            .toList();
+        placesToVisit = bookmarkedPlaces.where((place) => place['visited'] == false).toList();
+        placesVisited = bookmarkedPlaces.where((place) => place['visited'] == true).toList();
       });
     }
   }
@@ -66,15 +71,8 @@ class ProfilePageState extends State<ProfilePage> {
         if (pickedFile != null) {
           File coverPhotoFile = File(pickedFile.path);
           String fileName = 'coverPhotos/${user?.uid}.jpg';
-          Reference storageReference =
-              FirebaseStorage.instance.ref().child(fileName);
+          Reference storageReference = FirebaseStorage.instance.ref().child(fileName);
           UploadTask uploadTask = storageReference.putFile(coverPhotoFile);
-
-          uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-            // Progress listener (optional)
-          }, onError: (e) {
-            // Error listener (optional)
-          });
 
           TaskSnapshot snapshot = await uploadTask.whenComplete(() => {});
           String downloadUrl = await snapshot.ref.getDownloadURL();
@@ -92,8 +90,7 @@ class ProfilePageState extends State<ProfilePage> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content:
-              Text('Photo permission is required to select a cover photo.'),
+          content: Text('Photo permission is required to select a cover photo.'),
         ));
       }
     } catch (e) {
@@ -143,21 +140,20 @@ class ProfilePageState extends State<ProfilePage> {
       MaterialPageRoute(
         builder: (context) => PlacesList(
           places: placesVisited,
-          title: 'Places to Visit',
+          title: 'Places Visited',
         ),
       ),
     );
-    fetchUserData();// Refresh data after returning from the list page
+    fetchUserData(); // Refresh data after returning from the list page
   }
 
   Future<void> _navigateToEditInterests() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => OnboardingStep4()), // or your specific interest editing page
+      MaterialPageRoute(builder: (context) => OnboardingStep4()),
     );
     fetchUserData();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -172,24 +168,24 @@ class ProfilePageState extends State<ProfilePage> {
                 children: [
                   coverPhotoUrl.startsWith('http')
                       ? Image.network(
-                          coverPhotoUrl,
-                          width: double.infinity,
-                          height: MediaQuery.of(context).size.height,
-                          fit: BoxFit.cover,
-                        )
+                    coverPhotoUrl,
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height,
+                    fit: BoxFit.cover,
+                  )
                       : Image.asset(
-                          coverPhotoUrl,
-                          width: double.infinity,
-                          height: MediaQuery.of(context).size.height,
-                          fit: BoxFit.cover,
-                        ),
+                    coverPhotoUrl,
+                    width: double.infinity,
+                    height: MediaQuery.of(context).size.height,
+                    fit: BoxFit.cover,
+                  ),
                   Positioned(
                     top: 50,
                     right: 10,
                     child: IconButton(
                       icon: Icon(Icons.settings, color: Colors.black),
                       onPressed: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => SettingsPage())
                         );
@@ -257,27 +253,23 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   SizedBox(height: 20),
                   SizedBox(
-                    height: 80, // Shorter height
+                    height: 80,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: userInterests.length,
                       itemBuilder: (context, index) {
                         return Container(
                           width: 140,
-                          // Longer width
                           margin: EdgeInsets.only(right: 8.0),
-                          // Space between cards
                           child: Card(
                             color: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
-                              side: BorderSide(
-                                  color: Colors.black, width: 1), // Add border
+                              side: BorderSide(color: Colors.black, width: 1),
                             ),
                             elevation: 0,
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              // Smaller padding
                               child: Row(
                                 children: [
                                   Expanded(

@@ -26,18 +26,19 @@ class _ExplorePageState extends State<ExplorePage> {
   final LocationService _locationService = LocationService();
   Position? _currentPosition;
   bool isWheelchairAccessible = false;
-  bool _isInitialized = false;  // Flag to track if page is initialized
+  bool _isInitialized = false;
   late Future<void> _initialLoad;
+  bool _isRequestInProgress = false; // Flag to prevent overlapping requests
 
   @override
   void initState() {
     super.initState();
-    _initialLoad = _initializePage();  // Load recommendations only once
+    _initialLoad = _initializePage();
   }
 
   Future<void> _initializePage() async {
     if (_isInitialized) {
-      return;  // Prevent re-initialization
+      return;
     }
 
     setState(() {
@@ -55,17 +56,13 @@ class _ExplorePageState extends State<ExplorePage> {
       }
       _setGreeting();
 
-      _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      _currentPosition = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
       final weather = temperature;
       recommendedPlaces = await fetchNearbyAttractions(
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
-          25,
-          weather
-      );
+          _currentPosition!.latitude, _currentPosition!.longitude, 25, weather);
 
-      _isInitialized = true;  // Mark as initialized
-
+      _isInitialized = true;
     } catch (e) {
       print('Failed to initialize page: $e');
     } finally {
@@ -77,30 +74,35 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   Future<void> _refreshRecommendations() async {
+    if (_isRequestInProgress) return;
+
     setState(() {
       isLoading = true;
+      _isRequestInProgress = true;
     });
 
     try {
-      _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      _currentPosition = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
       final weather = temperature;
       recommendedPlaces = await fetchNearbyAttractions(
-          _currentPosition!.latitude,
-          _currentPosition!.longitude,
-          25,
-          weather
-      );
+          _currentPosition!.latitude, _currentPosition!.longitude, 25, weather);
     } catch (e) {
       print('Failed to refresh recommendations: $e');
     } finally {
       if (!mounted) return;
       setState(() {
         isLoading = false;
+        _isRequestInProgress = false;
       });
     }
   }
 
-  Future<bool> _updateLocationAndWeather({double? latitude, double? longitude}) async {
+  Future<bool> _updateLocationAndWeather(
+      {double? latitude, double? longitude}) async {
+    if (_isRequestInProgress) return false;
+
+    _isRequestInProgress = true;
     try {
       Position position;
       if (latitude != null && longitude != null) {
@@ -115,14 +117,17 @@ class _ExplorePageState extends State<ExplorePage> {
           speedAccuracy: 0,
         );
       } else {
-        position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high);
       }
 
-      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      List<Placemark> placemarks =
+      await placemarkFromCoordinates(position.latitude, position.longitude);
       final Placemark placemark = placemarks[0];
       final city = placemark.locality;
       final state = placemark.administrativeArea;
-      final weatherData = await _locationService.fetchWeatherData(position.latitude, position.longitude);
+      final weatherData = await _locationService.fetchWeatherData(
+          position.latitude, position.longitude);
       if (!mounted) return false;
 
       setState(() {
@@ -135,6 +140,8 @@ class _ExplorePageState extends State<ExplorePage> {
     } catch (e) {
       print('Failed to fetch location or weather: $e');
       return false;
+    } finally {
+      _isRequestInProgress = false;
     }
   }
 
@@ -150,16 +157,16 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   Future<void> _searchPlaces() async {
-    if (_currentPosition == null) return;
+    if (_currentPosition == null || _isRequestInProgress) return;
 
     setState(() {
       isLoading = true;
       locationError = false;
+      _isRequestInProgress = true;
     });
 
     try {
       String query = searchController.text.trim();
-      print("Search query: $query");
 
       recommendedPlaces = await searchPointOfInterest(
         query,
@@ -182,6 +189,7 @@ class _ExplorePageState extends State<ExplorePage> {
       if (!mounted) return;
       setState(() {
         isLoading = false;
+        _isRequestInProgress = false;
       });
     }
   }
@@ -191,18 +199,22 @@ class _ExplorePageState extends State<ExplorePage> {
       List<Location> locations = await locationFromAddress(address);
       if (locations.isNotEmpty) {
         final queryLocation = locations.first;
-        List<Placemark> placemarks = await placemarkFromCoordinates(queryLocation.latitude, queryLocation.longitude);
+        List<Placemark> placemarks = await placemarkFromCoordinates(
+            queryLocation.latitude, queryLocation.longitude);
         final Placemark placemark = placemarks[0];
         final city = placemark.locality;
         final state = placemark.administrativeArea;
 
-        final queryWeatherData = await _locationService.fetchWeatherData(queryLocation.latitude, queryLocation.longitude);
-        print(queryWeatherData);
+        final queryWeatherData = await _locationService.fetchWeatherData(
+            queryLocation.latitude, queryLocation.longitude);
+
         if (queryWeatherData != null) {
           setState(() {
             isQueryLocation = true;
-            queryCityState = '${city ?? 'Unknown city'}, ${state ?? 'Unknown state'}';
-            queryLocationWeather = '${queryWeatherData['icon']} ${queryWeatherData['temperature']}°F';
+            queryCityState =
+            '${city ?? 'Unknown city'}, ${state ?? 'Unknown state'}';
+            queryLocationWeather =
+            '${queryWeatherData['icon']} ${queryWeatherData['temperature']}°F';
           });
         } else {
           setState(() {
@@ -224,7 +236,9 @@ class _ExplorePageState extends State<ExplorePage> {
 
   List<Map<String, dynamic>> getFilteredPlaces() {
     if (isWheelchairAccessible) {
-      return recommendedPlaces.where((place) => place['wheelchairAccessible'] == true).toList();
+      return recommendedPlaces
+          .where((place) => place['wheelchairAccessible'] == true)
+          .toList();
     }
     return recommendedPlaces;
   }
@@ -238,10 +252,13 @@ class _ExplorePageState extends State<ExplorePage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (locationError) {
-            return Center(child: Text("Cannot fetch places without accessing your location."));
+            return Center(
+                child: Text(
+                    "Cannot fetch places without accessing your location."));
           } else {
             return RefreshIndicator(
-              onRefresh: _refreshRecommendations, // Trigger refresh on pull-down
+              onRefresh: _refreshRecommendations,
+              // Trigger refresh on pull-down
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16.0, 80.0, 20.0, 16.0),
                 child: SingleChildScrollView(
@@ -250,7 +267,7 @@ class _ExplorePageState extends State<ExplorePage> {
                     children: [
                       MySearchBar(
                         controller: searchController,
-                        onSearch: _searchPlaces, // Triggers search and updates location/weather
+                        onSearch: _searchPlaces,
                       ),
                       SizedBox(height: 20),
                       if (!isQueryLocation) ...[
@@ -261,7 +278,8 @@ class _ExplorePageState extends State<ExplorePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text('$weatherIcon $temperature°F', style: TextStyle(fontSize: 16)),
+                        Text('$weatherIcon $temperature°F',
+                            style: TextStyle(fontSize: 16)),
                       ] else ...[
                         Text(
                           '$queryCityState',
@@ -270,7 +288,8 @@ class _ExplorePageState extends State<ExplorePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text('$queryLocationWeather', style: TextStyle(fontSize: 16)),
+                        Text('$queryLocationWeather',
+                            style: TextStyle(fontSize: 16)),
                       ],
                       SizedBox(height: 30),
                       Text(
@@ -286,27 +305,35 @@ class _ExplorePageState extends State<ExplorePage> {
                           GestureDetector(
                             onTap: () {
                               setState(() {
-                                isWheelchairAccessible = !isWheelchairAccessible;
+                                isWheelchairAccessible =
+                                !isWheelchairAccessible;
                               });
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 5),
                               decoration: BoxDecoration(
-                                color: isWheelchairAccessible ? Colors.indigo.shade800 : Colors.transparent,
-                                border: Border.all(color: Colors.black), // Add black border here
+                                color: isWheelchairAccessible
+                                    ? Colors.indigo.shade800
+                                    : Colors.transparent,
+                                border: Border.all(color: Colors.black),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
                                   Icon(
                                     Icons.accessible,
-                                    color: isWheelchairAccessible ? Colors.white : Colors.black,
+                                    color: isWheelchairAccessible
+                                        ? Colors.white
+                                        : Colors.black,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     'Wheelchair Accessible',
                                     style: TextStyle(
-                                      color: isWheelchairAccessible ? Colors.white : Colors.black,
+                                      color: isWheelchairAccessible
+                                          ? Colors.white
+                                          : Colors.black,
                                     ),
                                   ),
                                 ],
@@ -318,9 +345,16 @@ class _ExplorePageState extends State<ExplorePage> {
                       SizedBox(height: 8),
                       _currentPosition != null
                           ? PlacesGrid(
-                        recommendedPlaces: getFilteredPlaces(),
-                      )
-                          : Center(child: Text("Unable to fetch your current location.")),
+                          recommendedPlaces: getFilteredPlaces(),
+                          onBookmarkToggle: (index, isBookmarked) {
+                            setState(() {
+                              recommendedPlaces[index]['bookmarked'] =
+                                  isBookmarked;
+                            });
+                          })
+                          : Center(
+                          child: Text(
+                              "Unable to fetch your current location.")),
                     ],
                   ),
                 ),

@@ -126,7 +126,7 @@ class _SettingsPage extends State<SettingsPage> {
                 title: 'Notifications',
                 subtitle: "",
                 onTap: () {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => NotificationSettingsPage()),
                   );

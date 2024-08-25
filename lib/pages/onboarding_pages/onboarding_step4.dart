@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '/components/my_button.dart';
 import '/components/my_appbar.dart';
-import 'onboarding_step3.dart';
 import '/services/update_interests.dart';
 import '/services/user_service.dart';
 import '/components/interest_list.dart';

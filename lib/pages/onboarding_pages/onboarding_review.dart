@@ -31,10 +31,9 @@ class _ReviewPageState extends State<ReviewPage> {
     try {
       // Step 1: Generate the description
       final generateResponse = await generateUserDescription();
-
       // Step 2: Fetch the generated description from the database
       final responseData = await getUser();
-      print(responseData);
+      //print(responseData);
       setState(() {
         if (responseData.isNotEmpty) {
           geminiDescription = responseData['geminiDescription'] ?? "";

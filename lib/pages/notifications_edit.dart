@@ -60,7 +60,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
             ),
             SizedBox(height: 16),
             Text(
-              'To receive notifications about nearby places, allow us to track your location by going to Settings > ExploreLoci > Allow Location Access: Always',
+              'To receive notifications about nearby places, allow us to track your location by going to Settings > Wander Finds Gemini > Allow Location Access: Always',
               style: TextStyle(fontSize: 16),
             ),
           ],

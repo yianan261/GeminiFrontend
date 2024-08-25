@@ -6,10 +6,12 @@ import '/services/user_service.dart';
 
 class PlaceDetailPage extends StatefulWidget {
   final String placeId;
+  final ValueChanged<bool>? onBookmarkToggle; // Add callback for bookmark toggle
 
   const PlaceDetailPage({
     Key? key,
     required this.placeId,
+    this.onBookmarkToggle,
   }) : super(key: key);
 
   @override
@@ -32,11 +34,8 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
 
   Future<void> _getCurrentPositionAndFetchDetails() async {
     try {
-      _currentPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      final details = await fetchPlaceDetails(
-          widget.placeId, _currentPosition!.latitude, _currentPosition!.longitude);
-      print(details);
+      _currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final details = await fetchPlaceDetails(widget.placeId, _currentPosition!.latitude, _currentPosition!.longitude);
       setState(() {
         placeDetails = details;
         isLoading = false;
@@ -98,6 +97,9 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
           isBookmarked = !isBookmarked; // Toggle the bookmarked state
           placeDetails!['bookmarked'] = isBookmarked; // Update the place details
         });
+
+        // Notify the parent widget (e.g., PlaceCard or ExplorePage) of the bookmark change
+        widget.onBookmarkToggle?.call(isBookmarked);
       } catch (e) {
         print('Failed to toggle bookmark: $e');
       }
@@ -157,8 +159,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (placeDetails!['photo_url'] != null &&
-                placeDetails!['photo_url'].isNotEmpty)
+            if (placeDetails!['photo_url'] != null && placeDetails!['photo_url'].isNotEmpty)
               SizedBox(
                 height: 200,
                 child: ListView.builder(
@@ -179,14 +180,11 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                           bottom: 8,
                           right: 8,
                           child: Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 2.0, horizontal: 8.0),
+                            padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
                             color: Colors.black54,
                             child: Text(
                               '${index + 1}/${placeDetails!['photo_url'].length}',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14),
+                              style: TextStyle(color: Colors.white, fontSize: 14),
                             ),
                           ),
                         ),
@@ -199,108 +197,103 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 placeDetails!['title'] ?? 'No Name',
-                style: TextStyle(
-                    fontSize: 25, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(children: [
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
                   Text(
                     placeDetails!['editorial_summary'] ?? '',
                     style: TextStyle(fontSize: 16),
                   ),
                   SizedBox(height: 10.0),
                   Divider(color: Colors.grey[300]),
-                ])),
-            Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Location',
-                        style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(placeDetails!['address'] ?? 'No Address'),
-                      TextButton.icon(
-                        onPressed: () async {
-                          final String googleMapsUrl =
-                              "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(placeDetails!['address'] ?? '')}";
-                          if (await canLaunch(googleMapsUrl)) {
-                            await launch(googleMapsUrl);
-                          } else {
-                            throw 'Could not open the map.';
-                          }
-                        },
-                        icon: Icon(Icons.directions,
-                            color: Colors.blue),
-                        label: Text(
-                          'Get Directions',
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size(50, 30),
-                          alignment: Alignment.centerLeft,
-                        ),
-                      ),
-                      SizedBox(height: 10.0),
-                      Divider(color: Colors.grey[300]),
-                    ])),
+                ],
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Interesting Facts',
-                      style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Location',
+                    style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
                     ),
-                    SizedBox(height: 15),
-                    // Add space between title and Gemini text
-                    Align(
-                      alignment: Alignment.centerLeft, // Align to the left
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ShaderMask(
-                            shaderCallback: (bounds) =>
-                                LinearGradient(
-                                  colors: [Colors.blue, Colors.purple],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ).createShader(bounds),
-                            child: Icon(Icons.auto_awesome,
-                                color: Colors.white, size: 16),
+                  ),
+                  Text(placeDetails!['address'] ?? 'No Address'),
+                  TextButton.icon(
+                    onPressed: () async {
+                      final String googleMapsUrl = "https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(placeDetails!['address'] ?? '')}";
+                      if (await canLaunch(googleMapsUrl)) {
+                        await launch(googleMapsUrl);
+                      } else {
+                        throw 'Could not open the map.';
+                      }
+                    },
+                    icon: Icon(Icons.directions, color: Colors.blue),
+                    label: Text('Get Directions', style: TextStyle(color: Colors.blue)),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size(50, 30),
+                      alignment: Alignment.centerLeft,
+                    ),
+                  ),
+                  SizedBox(height: 10.0),
+                  Divider(color: Colors.grey[300]),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Interesting Facts',
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 15),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ShaderMask(
+                          shaderCallback: (bounds) =>
+                              LinearGradient(
+                                colors: [Colors.blue, Colors.purple],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ).createShader(bounds),
+                          child: Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          'Generated with Gemini',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey,
                           ),
-                          SizedBox(width: 5),
-                          Text(
-                            'Generated with Gemini',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              fontStyle: FontStyle.italic,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      placeDetails!['interesting_facts'] ??
-                          'No interesting facts available',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    SizedBox(height: 10.0),
-                    Divider(color: Colors.grey[300]),
-                  ]),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    placeDetails!['interesting_facts'] ?? 'No interesting facts available',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  SizedBox(height: 10.0),
+                  Divider(color: Colors.grey[300]),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -326,25 +319,20 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                           ),
                         ),
                         SizedBox(width: 5),
-                        _buildRatingStars(
-                            (placeDetails!['rating'] as num).toDouble()),
+                        _buildRatingStars((placeDetails!['rating'] as num).toDouble()),
                         SizedBox(width: 5),
                       ],
                     ),
                   ],
-                  ...placeDetails!['reviews']
-                      ?.map<Widget>((review) {
+                  ...placeDetails!['reviews']?.map<Widget>((review) {
                     return Padding(
                       padding: const EdgeInsets.all(2.0),
                       child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             review['author_name'] ?? 'Anonymous',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Text(
                             review['text'] ?? '',
@@ -353,8 +341,7 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
                         ],
                       ),
                     );
-                  }).toList() ??
-                      [],
+                  }).toList() ?? [],
                 ],
               ),
             ),
@@ -370,11 +357,9 @@ class _PlaceDetailPageState extends State<PlaceDetailPage> {
 
     return Row(
       children: [
-        ...List.generate(fullStars, (index) =>
-            Icon(Icons.star, color: Colors.orange, size: 20)),
+        ...List.generate(fullStars, (index) => Icon(Icons.star, color: Colors.orange, size: 20)),
         if (hasHalfStar) Icon(Icons.star_half, color: Colors.orange, size: 20),
-        ...List.generate(5 - fullStars - (hasHalfStar ? 1 : 0),
-                (index) => Icon(Icons.star_border, color: Colors.orange, size: 20)),
+        ...List.generate(5 - fullStars - (hasHalfStar ? 1 : 0), (index) => Icon(Icons.star_border, color: Colors.orange, size: 20)),
       ],
     );
   }

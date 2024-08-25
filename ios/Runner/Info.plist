@@ -37,18 +37,32 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
+	<key>GMSApiKey</key>
+	<string>AIzaSyBfw6L1DuggFx0JPSfTn2gACUl4PZUHkao</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>http</string>
+		<string>https</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to take photos for your profile.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>We need your location to send you point of interests nearby!</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to send you point of interests nearby!</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to record videos for your profile.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to upload cover photos for your profile.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
 		<string>location</string>
+		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
@@ -68,20 +82,14 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>LSApplicationQueriesSchemes</key>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
     <array>
-      <string>http</string>
-      <string>https</string>
+        <string>iOSBackgroundProcessing</string>
+
+    	<!-- Register a periodic task in iOS 13+ -->
+    	<string>locationTracking</string>
     </array>
-    <key>GMSApiKey</key>
-    <string>AIzaSyBfw6L1DuggFx0JPSfTn2gACUl4PZUHkao</string>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>We need access to your photo library to upload cover photos for your profile.</string>
-    <key>NSCameraUsageDescription</key>
-    <string>We need access to your camera to take photos for your profile.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>We need access to your microphone to record videos for your profile.</string>
-    <key>io.flutter.embedded_views_preview</key>
-    <true/>
 </dict>
 </plist>

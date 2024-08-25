@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'pages/profile_page.dart';
 import 'pages/auth_page.dart';
 import 'pages/settings.dart';
-import 'pages/places_list_page.dart';  // Import your PlacesList page
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'components/app_navigator_observer.dart'; // Import your observer
@@ -10,9 +9,12 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '/services/location_service.dart';
 import 'package:wander_finds_gemini/services/places_service.dart';
+
+const locationTracking = "locationTracking";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,13 +51,78 @@ void main() async {
       onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
   );
 
+  // Ensure the notification is created on the main thread
+  SchedulerBinding.instance.addPostFrameCallback((_) {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 10,
+        channelKey: 'basic_channel',
+        title: "Hello from WorkManager!",
+        body: "This is a simple notification.",
+      ),
+    );
+  });
 
-  Workmanager().initialize(callbackDispatcher);
 
+  await Workmanager().cancelAll();
+  await initializeWorkManager();
+  Workmanager().registerPeriodicTask(
+    "locationTracking", // Unique identifier for the task
+    locationTracking,
+    frequency: Duration(minutes: 15), // Task name
+  );
+  Workmanager().printScheduledTasks();
   runApp(const MyApp());
 }
 
+Future<void> initializeWorkManager() async {
+  await Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: true,
+  );
+  print("WorkManager initialization complete.");
+}
 
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  print("Workmanager task started.");
+  Workmanager().executeTask((task, inputData) {
+    AwesomeNotifications().initialize(
+      // set the icon to null if you want to use the default app icon
+        null,
+        [
+          NotificationChannel(
+              channelGroupKey: 'basic_channel_group',
+              channelKey: 'basic_channel',
+              channelName: 'Basic notifications',
+              channelDescription: 'Notification channel for basic tests',
+              defaultColor: Color(0xFF9D50DD),
+              ledColor: Colors.white)
+        ],
+        // Channel groups are only visual and are not required
+        channelGroups: [
+          NotificationChannelGroup(
+              channelGroupKey: 'basic_channel_group',
+              channelGroupName: 'Basic group')
+        ],
+        debug: true
+    );
+    switch(task){
+      case locationTracking:
+        print("Task excecuted: $task");
+        AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: 10,
+            channelKey: 'basic_channel',
+            title: "Hello from WorkManager!",
+            body: "This is a simple notification triggered by the WorkManager task.",
+          ),
+        );
+        print("Notification sent.");
+    }
+    return Future.value(true);
+  });
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -91,10 +158,13 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-
+/*
+@pragma('vm:entry-point')
 void callbackDispatcher() {
+  print("Workmanager task started.");
   Workmanager().executeTask((task, inputData) async {
+    DateTime now = DateTime.now();
+    print("Background task triggered at $now with task name: $task");
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -137,13 +207,10 @@ void callbackDispatcher() {
         }
         final LocationService _locationService = LocationService();
         final weatherData = await _locationService.fetchWeatherData(position.latitude, position.longitude);
-
-        final email = user?.email;
         List<Map<String, dynamic>> recommendedPlaces = [];
-
         recommendedPlaces = await fetchNearbyAttractions(
-          position!.latitude,
-          position!.longitude,
+          position.latitude,
+          position.longitude,
           25,
           weatherData['temperature']);
 
@@ -172,7 +239,8 @@ void callbackDispatcher() {
 
     return Future.value(true);
   });
-}
+}*/
+
 
 // Function to save the current position
 Future<void> saveLastPosition(Position position) async {

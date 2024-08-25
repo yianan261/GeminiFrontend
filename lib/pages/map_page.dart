@@ -4,7 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import '/services/places_service.dart';
 import '/components/place_card.dart';
 import '/services/location_service.dart';
-import '/components/search_bar.dart';  // Assuming you have a reusable search bar component
+import '/components/search_bar.dart'; // Assuming you have a reusable search bar component
 import 'package:geocoding/geocoding.dart';
 
 class MapPage extends StatefulWidget {
@@ -13,14 +13,14 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  GoogleMapController? mapController; // Made nullable
+  GoogleMapController? mapController;
   late Position currentPosition;
   Set<Marker> markers = {};
   bool isLoading = true;
   bool showSearchButton = false;
   late LatLng initialPosition;
-  LatLng? searchedLocation; // New location variable to track search queries
-  Map<String, Map<String, dynamic>> places = {}; // Store place details
+  LatLng? searchedLocation;
+  Map<String, Map<String, dynamic>> places = {};
   final LocationService _locationService = LocationService();
   TextEditingController searchController = TextEditingController();
 
@@ -62,7 +62,7 @@ class _MapPageState extends State<MapPage> {
           final lng = place['location']['longitude'];
           final parsedLat = lat is String ? double.parse(lat) : lat;
           final parsedLng = lng is String ? double.parse(lng) : lng;
-          places[place['place_id']] = place; // Store the place details
+          places[place['place_id']] = place;
           return Marker(
             markerId: MarkerId(place['place_id']),
             position: LatLng(parsedLat, parsedLng),
@@ -136,7 +136,6 @@ class _MapPageState extends State<MapPage> {
     });
 
     try {
-      // Get locations from the search query
       List<Location> locations = await locationFromAddress(searchController.text);
 
       if (locations.isNotEmpty) {
@@ -144,8 +143,7 @@ class _MapPageState extends State<MapPage> {
         searchedLocation = LatLng(location.latitude, location.longitude);
 
         setState(() {
-          // Update the UI to display the map centered on the searched location
-          markers.clear();
+          // Add the search location marker without clearing the existing markers
           markers.add(
             Marker(
               markerId: MarkerId("searched_location"),
@@ -198,7 +196,7 @@ class _MapPageState extends State<MapPage> {
           ),
           if (showSearchButton)
             Positioned(
-              top: 120, // Adjusted top position to move the button down
+              top: 120,
               left: MediaQuery.of(context).size.width / 2 - 80,
               child: ElevatedButton.icon(
                 icon: Icon(Icons.search),
@@ -222,6 +220,15 @@ class _MapPageState extends State<MapPage> {
                       LatLng(currentPosition.latitude, currentPosition.longitude),
                     ),
                   );
+                  setState(() {
+                    markers.add(
+                      Marker(
+                        markerId: MarkerId("current_location"),
+                        position: LatLng(currentPosition.latitude, currentPosition.longitude),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                      ),
+                    );
+                  });
                 }
               },
             ),
