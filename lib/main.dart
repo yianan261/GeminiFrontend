@@ -21,55 +21,13 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  AwesomeNotifications().initialize(
-    // set the icon to null if you want to use the default app icon
-      null,
-      [
-        NotificationChannel(
-            channelGroupKey: 'basic_channel_group',
-            channelKey: 'basic_channel',
-            channelName: 'Basic notifications',
-            channelDescription: 'Notification channel for basic tests',
-            defaultColor: Color(0xFF9D50DD),
-            ledColor: Colors.white)
-      ],
-      // Channel groups are only visual and are not required
-      channelGroups: [
-        NotificationChannelGroup(
-            channelGroupKey: 'basic_channel_group',
-            channelGroupName: 'Basic group')
-      ],
-      debug: true
-  );
-
-
-  // Only after at least the action method is set, the notification events are delivered
-  AwesomeNotifications().setListeners(
-      onActionReceivedMethod:         NotificationController.onActionReceivedMethod,
-      onNotificationCreatedMethod:    NotificationController.onNotificationCreatedMethod,
-      onNotificationDisplayedMethod:  NotificationController.onNotificationDisplayedMethod,
-      onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
-  );
-
-  // Ensure the notification is created on the main thread
-  SchedulerBinding.instance.addPostFrameCallback((_) {
-    AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: 10,
-        channelKey: 'basic_channel',
-        title: "Hello from WorkManager!",
-        body: "This is a simple notification.",
-      ),
-    );
-  });
-
 
   await Workmanager().cancelAll();
   await initializeWorkManager();
   Workmanager().registerPeriodicTask(
-    "locationTracking", // Unique identifier for the task
+    "locationTracking",
     locationTracking,
-    frequency: Duration(minutes: 15), // Task name
+    frequency: Duration(minutes: 15),
   );
   Workmanager().printScheduledTasks();
   runApp(const MyApp());
@@ -86,39 +44,39 @@ Future<void> initializeWorkManager() async {
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   print("Workmanager task started.");
-  Workmanager().executeTask((task, inputData) {
+  Workmanager().executeTask((task, inputData) async {
     AwesomeNotifications().initialize(
-      // set the icon to null if you want to use the default app icon
-        null,
-        [
-          NotificationChannel(
-              channelGroupKey: 'basic_channel_group',
-              channelKey: 'basic_channel',
-              channelName: 'Basic notifications',
-              channelDescription: 'Notification channel for basic tests',
-              defaultColor: Color(0xFF9D50DD),
-              ledColor: Colors.white)
-        ],
-        // Channel groups are only visual and are not required
-        channelGroups: [
-          NotificationChannelGroup(
-              channelGroupKey: 'basic_channel_group',
-              channelGroupName: 'Basic group')
-        ],
-        debug: true
+      null,
+      [
+        NotificationChannel(
+          channelGroupKey: 'basic_channel_group',
+          channelKey: 'basic_channel',
+          channelName: 'Basic notifications',
+          channelDescription: 'Notification channel for basic tests',
+          defaultColor: Color(0xFF9D50DD),
+          ledColor: Colors.white,
+        )
+      ],
+      channelGroups: [
+        NotificationChannelGroup(
+          channelGroupKey: 'basic_channel_group',
+          channelGroupName: 'Basic group',
+        )
+      ],
+      debug: true,
     );
-    switch(task){
-      case locationTracking:
-        print("Task excecuted: $task");
-        AwesomeNotifications().createNotification(
-          content: NotificationContent(
-            id: 10,
-            channelKey: 'basic_channel',
-            title: "Hello from WorkManager!",
-            body: "This is a simple notification triggered by the WorkManager task.",
-          ),
-        );
-        print("Notification sent.");
+
+    if (task == locationTracking) {
+      print("Task executed: $task");
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 10,
+          channelKey: 'basic_channel',
+          title: "Hello from WorkManager!",
+          body: "This is a simple notification triggered by the WorkManager task.",
+        ),
+      );
+      print("Notification sent.");
     }
     return Future.value(true);
   });
@@ -151,103 +109,19 @@ class MyApp extends StatelessWidget {
         AppNavigatorObserver(
           onReturn: () {
             final profilePageState = context.findAncestorStateOfType<ProfilePageState>();
-            profilePageState?.fetchUserData();  // Refresh data when returning to profile
+            profilePageState?.fetchUserData();
           },
         ),
       ],
     );
   }
 }
-/*
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  print("Workmanager task started.");
-  Workmanager().executeTask((task, inputData) async {
-    DateTime now = DateTime.now();
-    print("Background task triggered at $now with task name: $task");
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.value(false);
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.value(false);
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.value(false);
-    }
-
-    Position position = await Geolocator.getCurrentPosition();
-    Position? lastPosition = await getLastPosition(); // Implement this function to get the last saved position
-
-    if (lastPosition != null) {
-      double distance = Geolocator.distanceBetween(
-        lastPosition.latitude,
-        lastPosition.longitude,
-        position.latitude,
-        position.longitude,
-      );
-
-      if (distance < 10000 || lastPosition == null) {
-
-
-        // Get the current user's email from Firebase Authentication
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user == null) {
-          print('No user logged in.');
-        }
-        final LocationService _locationService = LocationService();
-        final weatherData = await _locationService.fetchWeatherData(position.latitude, position.longitude);
-        List<Map<String, dynamic>> recommendedPlaces = [];
-        recommendedPlaces = await fetchNearbyAttractions(
-          position.latitude,
-          position.longitude,
-          25,
-          weatherData['temperature']);
-
-        final place = recommendedPlaces[0];
-        final title = place['title'] ?? 'No Name';
-        final address = place['address'] ?? 'No Address';
-        final photo_url = place['photo_url'][0];
-
-
-
-
-        AwesomeNotifications().createNotification(
-          content: NotificationContent(
-              id: 10,
-              channelKey: 'basic_channel',
-              title: "Do you want to explore " + title + " ?",
-              body: address,
-              notificationLayout: NotificationLayout.BigPicture,
-              bigPicture: photo_url
-          ),
-        );
-      }
-    }
-
-    saveLastPosition(position); // Implement this function to save the current position
-
-    return Future.value(true);
-  });
-}*/
-
 
 // Function to save the current position
 Future<void> saveLastPosition(Position position) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setDouble('lastLatitude', position.latitude);
   await prefs.setDouble('lastLongitude', position.longitude);
-  // await prefs.setDouble('test', position.longitude);
 }
 
 // Function to get the last saved position
@@ -256,39 +130,39 @@ Future<Position?> getLastPosition() async {
   double? latitude = prefs.getDouble('lastLatitude');
   double? longitude = prefs.getDouble('lastLongitude');
   if (latitude != null && longitude != null) {
-    return Position(latitude: latitude, longitude: longitude, timestamp: DateTime.now(), accuracy: 0.0, altitude: 0.0, heading: 0.0, speed: 0.0, speedAccuracy: 0.0);
+    return Position(
+      latitude: latitude,
+      longitude: longitude,
+      timestamp: DateTime.now(),
+      accuracy: 0.0,
+      altitude: 0.0,
+      heading: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0,
+    );
   }
   return null;
 }
 
 class NotificationController {
 
-  /// Use this method to detect when a new notification or a schedule is created
   @pragma("vm:entry-point")
-  static Future <void> onNotificationCreatedMethod(ReceivedNotification receivedNotification) async {
+  static Future<void> onNotificationCreatedMethod(ReceivedNotification receivedNotification) async {
     // Your code goes here
   }
 
-  /// Use this method to detect every time that a new notification is displayed
   @pragma("vm:entry-point")
-  static Future <void> onNotificationDisplayedMethod(ReceivedNotification receivedNotification) async {
+  static Future<void> onNotificationDisplayedMethod(ReceivedNotification receivedNotification) async {
     // Your code goes here
   }
 
-  /// Use this method to detect if the user dismissed a notification
   @pragma("vm:entry-point")
-  static Future <void> onDismissActionReceivedMethod(ReceivedAction receivedAction) async {
+  static Future<void> onDismissActionReceivedMethod(ReceivedAction receivedAction) async {
     // Your code goes here
   }
 
-  /// Use this method to detect when the user taps on a notification or action button
   @pragma("vm:entry-point")
-  static Future <void> onActionReceivedMethod(ReceivedAction receivedAction) async {
+  static Future<void> onActionReceivedMethod(ReceivedAction receivedAction) async {
     // Your code goes here
-
-    // // Navigate into pages, avoiding to open the notification details page over another details page already opened
-    // MyApp.navigatorKey.currentState?.pushNamedAndRemoveUntil('/notification-page',
-    //         (route) => (route.settings.name != '/notification-page') || route.isFirst,
-    //     arguments: receivedAction);
   }
 }
